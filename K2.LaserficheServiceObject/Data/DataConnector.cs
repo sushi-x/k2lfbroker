@@ -155,46 +155,25 @@ namespace K2.LaserficheServiceObject.DataConnectors
             //}
 
 
-            ////ServiceObject dso = serviceBroker.Service.ServiceObjects.Create(GenerateDocumentServiceObject());
-            serviceBroker.Service.ServiceObjects.Create(GenerateDocumentServiceObject());
+            ServiceFolder sf;
+            sf = new ServiceFolder("Templates", new MetaData("Templates", "Folder for Template Service Objects"));
+            serviceBroker.Service.ServiceFolders.Create(sf);
+            foreach (ServiceObject templateSvcObj in GenerateTemplateServiceObjects())
+            {
+                sf.Add(serviceBroker.Service.ServiceObjects.Create(templateSvcObj));
+            }
 
-            ////ServiceObject tso = serviceBroker.Service.ServiceObjects.Create(GenerateTemplatesServiceObject());
-            ////ServiceObject tso2 = serviceBroker.Service.ServiceObjects.Create(GenerateTemplatesServiceObject2());
-            ////ServiceObject tso3 = serviceBroker.Service.ServiceObjects.Create(GenerateTemplatesServiceObject3());
-
-            ////ServiceObject wfo = serviceBroker.Service.ServiceObjects.Create(GenerateWorkflowsServiceObject());
-            ////ServiceObject wfo2 = serviceBroker.Service.ServiceObjects.Create(GenerateWorkflowsServiceObject2());
-            ////ServiceObject wfo3 = serviceBroker.Service.ServiceObjects.Create(GenerateWorkflowsServiceObject3());
-
-
-            ////serviceBroker.Service.ServiceObjects.Create(dso);
-
-            ////serviceBroker.Service.ServiceObjects.Create(tso);
-            ////serviceBroker.Service.ServiceObjects.Create(tso2);
-            ////serviceBroker.Service.ServiceObjects.Create(tso3);
-
-            ////serviceBroker.Service.ServiceObjects.Create(wfo);
-            ////serviceBroker.Service.ServiceObjects.Create(wfo2);
-            ////serviceBroker.Service.ServiceObjects.Create(wfo3);
-
-
-            ////ServiceFolder sf = new ServiceFolder("Templates", new MetaData("Templates","Folder for Template Service Objects"));
-            ////serviceBroker.Service.ServiceFolders.Create(sf);
-            ////sf.Add(tso);
-            ////sf.Add(tso2);
-            ////sf.Add(tso3);
 
             ////sf = null;
             ////sf = new ServiceFolder("Workflows", new MetaData("Workflows", "Folder for Workflow Service Objects"));
             ////serviceBroker.Service.ServiceFolders.Create(sf);
             ////sf.Add(wfo);
-            ////sf.Add(wfo2);
-            ////sf.Add(wfo3);
 
-            ////sf = null;
-            ////sf = new ServiceFolder("Documents", new MetaData("Documents", "Folder for Document Service Objects"));
-            ////serviceBroker.Service.ServiceFolders.Create(sf);
-            ////sf.Add(dso);
+            sf = null;
+            sf = new ServiceFolder("Documents", new MetaData("Documents", "Folder for Document Service Objects"));
+            serviceBroker.Service.ServiceFolders.Create(sf);
+            ServiceObject dso = serviceBroker.Service.ServiceObjects.Create(GenerateDocumentServiceObject());
+            sf.Add(dso);
 
 
         }
@@ -280,8 +259,8 @@ namespace K2.LaserficheServiceObject.DataConnectors
                     case MethodType.Read:
                         ExecuteDocumentRuntimeReadMethod(inputProperties, requiredProperties, returnProperties, parameters, serviceObject);
                         break;
-                    case MethodType.List:
-                        ExecuteDocumentRuntimeListMethod(inputProperties, requiredProperties, returnProperties, parameters, serviceObject);
+                    case MethodType.Create:
+                        ExecuteDocumentRuntimeCreateMethod(inputProperties, requiredProperties, returnProperties, parameters, serviceObject);
                         break;
                     default:
                         throw new NotImplementedException("The helper for the specified method type (" + methodType.ToString() + ") has not been implemented");
@@ -521,7 +500,7 @@ namespace K2.LaserficheServiceObject.DataConnectors
             //method = null;
             method = new Method();
             method.Name = "Insert";
-            method.Type = MethodType.Update;
+            method.Type = MethodType.Create;
             method.MetaData.DisplayName = "Insert";
             //if the method type is Read, define a Key property using the first property for the ServiceObject
             if (method.Type == MethodType.Update)
@@ -546,523 +525,312 @@ namespace K2.LaserficheServiceObject.DataConnectors
 
         }
 
-        public ServiceObject GenerateTemplatesServiceObject()
+        public List<ServiceObject> GenerateTemplateServiceObjects() 
         {
 
-            //document service object
-            ServiceObject documentSvcObject = new ServiceObject();
+            //generate a list to hold the service objects
+            List<ServiceObject> templateSvcObjects = new List<ServiceObject>();
 
+            //variables to hold ServiceObject, Properties and Methods
+            ServiceObject obj = null;
             Property property = null;
             Method method = null;
             //load the Type Mappings as defined by the SetTypeMappings() method
             TypeMappings map = GetTypeMappings();
 
+            LaserficheProvider lp = new LaserficheProvider(_requiredLaserficheServerValue, _requiredLaserficheRepositoryValue);
+            List<TemplateInfo> templateInfoList;
+            lp.Connect();
+            templateInfoList = lp.GetAllTemplates();
+            lp.Logout();
 
-            //Note: ServiceObject Name should not contain space
-            documentSvcObject.Name = "Templates1";
-            documentSvcObject.MetaData.DisplayName = "Templates1";
-            //IMPORTANT: You must activate the Service Object
-            documentSvcObject.Active = true;
-
-            property = new Property();
-            property.Name = "DocumentID";
-            property.MetaData.DisplayName = "DocumentID";
-            //Property Type should be set to a .NET type
-            //based on the Property type, lookup and set SoType using the Property Mappings defined in the SetTypeMappings() method
-            property.SoType = map[typeof(System.Int32).ToString()];
-            //You can store the backend type here if you needed to, like this
-            //property.MetaData.ServiceProperties.Add("String", "TEXT"); 
-            documentSvcObject.Properties.Add(property);
-            property = null;
-
-            property = new Property();
-            property.Name = "DocumentName";
-            property.MetaData.DisplayName = "DocumentName";
-            //Property Type should be set to a .NET type
-            //based on the Property type, lookup and set SoType using the Property Mappings defined in the SetTypeMappings() method
-            property.SoType = map[typeof(System.String).ToString()];
-            //You can store the backend type here if you needed to, like this
-            //property.MetaData.ServiceProperties.Add("String", "TEXT"); 
-            documentSvcObject.Properties.Add(property);
-            property = null;
-
-            property = new Property();
-            property.Name = "NumberOfPages";
-            property.MetaData.DisplayName = "NumberOfPages";
-            //Property Type should be set to a .NET type
-            //based on the Property type, lookup and set SoType using the Property Mappings defined in the SetTypeMappings() method
-            property.SoType = map[typeof(System.Int32).ToString()];
-            //You can store the backend type here if you needed to, like this
-            //property.MetaData.ServiceProperties.Add("String", "TEXT"); 
-            documentSvcObject.Properties.Add(property);
-            property = null;
-
-            property = new Property();
-            property.Name = "Path";
-            property.MetaData.DisplayName = "Path";
-            //Property Type should be set to a .NET type
-            //based on the Property type, lookup and set SoType using the Property Mappings defined in the SetTypeMappings() method
-            property.SoType = map[typeof(System.String).ToString()];
-            //You can store the backend type here if you needed to, like this
-            //property.MetaData.ServiceProperties.Add("String", "TEXT"); 
-            documentSvcObject.Properties.Add(property);
-            property = null;
-
-            property = new Property();
-            property.Name = "TemplateName";
-            property.MetaData.DisplayName = "TemplateName";
-            //Property Type should be set to a .NET type
-            //based on the Property type, lookup and set SoType using the Property Mappings defined in the SetTypeMappings() method
-            property.SoType = map[typeof(System.String).ToString()];
-            //You can store the backend type here if you needed to, like this
-            //property.MetaData.ServiceProperties.Add("String", "TEXT"); 
-            documentSvcObject.Properties.Add(property);
-            property = null;
-
-
-            //Add a Method for the Service Object
-            method = new Method();
-            method.Name = "Read";
-            method.Type = MethodType.Read;
-            method.MetaData.DisplayName = "Read";
-            //if the method type is Read, define a Key property using the first property for the ServiceObject
-            if (method.Type == MethodType.Read)
+            //Generate Service Objects for all available templates 
+            //this looping-approach is for sample purposes only, to demonstrate adding a variable number of ServiceObjects
+            //pay special attention to the Service Object generation
+            for (int i = 0; i < templateInfoList.Count; i++)
             {
-                // Set up key property as the first Property of the SmartObject
-                method.InputProperties.Add(documentSvcObject.Properties[0]);
+                //Create a sample Service Object using the i counter to identify the object
+                obj = new ServiceObject();
+                //Note: ServiceObject Name should not contain space
+                obj.Name = templateInfoList[i].Name.Replace(" ","_");
+                obj.MetaData.DisplayName = templateInfoList[i].Name;
+                //IMPORTANT: You must activate the Service Object
+                obj.Active = true;
 
-                // Mark the key property as required.
-                method.Validation.RequiredProperties.Add(documentSvcObject.Properties[0]);
+                //Add Properties for the Service object. 
+                for (int j = 0; j < templateInfoList[i].Fields.Length; j++)
+                {
+                    property = new Property();
+                    property.Name = templateInfoList[i].Fields[j].Name.Replace(" ", "_");
+                    property.MetaData.DisplayName = templateInfoList[i].Fields[j].Name;
+                    switch (templateInfoList[i].Fields[j].FieldType)
+                    {
+                        case FieldType.String:
+                            property.SoType = map[typeof(System.String).ToString()];
+                            break;
+                        case FieldType.Number:
+                            property.SoType = map[typeof(System.Int32).ToString()];
+                            break;
+                        default:
+                            break;
+                    }
+                    //You can store the backend type here if you needed to, like this
+                    //property.MetaData.ServiceProperties.Add("String", "TEXT"); 
+                    obj.Properties.Add(property);
+                    property = null;
+                }
 
-                ////Include a Method Parameter which is required, but not returned as a property
-                //MethodParameter parm = new MethodParameter("Parameter " + k.ToString(), typeof(System.String).ToString(), SoType.Text, null);
-                //parm.MetaData.DisplayName = "Parameter " + k.ToString() + " (Display Name)";
-                //parm.MetaData.Description = "Sample Parameter";
-                //method.MethodParameters.Create(parm);
+                //Add Methods for the Service Object. 
+                for (int k = 0; k <= 3; k++)
+                {
+                    //Add a Method for the Service Object
+                    method = new Method();
+                    switch (k)
+                    {
+                        case 0:
+                            //read
+                            method.Name = "Read";
+                            method.Type = MethodType.Read;
+                            method.MetaData.DisplayName = "Read";
+                            break;
+                        case 1:
+                            //write
+                            method.Name = "Write";
+                            method.Type = MethodType.Update;
+                            method.MetaData.DisplayName = "Write";
+                            break;
+                        case 2:
+                            //insert
+                            method.Name = "Insert";
+                            method.Type = MethodType.Create;
+                            method.MetaData.DisplayName = "Insert";
+                            break;
+                        case 3:
+                            //search
+                            method.Name = "Search";
+                            method.Type = MethodType.List;
+                            method.MetaData.DisplayName = "Search";
+
+
+                            break;
+                    }
+                    //if the method type is Read, define a Key property using the first property for the ServiceObject
+                    if (method.Type == MethodType.Read || method.Type == MethodType.Update)
+                    {
+                        // Set up key property as the first Property of the SmartObject
+                        method.InputProperties.Add(obj.Properties[0]);
+
+                        // Mark the key property as required.
+                        method.Validation.RequiredProperties.Add(obj.Properties[0]);
+
+                        ////Include a Method Parameter which is required, but not returned as a property
+                        //MethodParameter parm = new MethodParameter("Parameter " + k.ToString(), typeof(System.String).ToString(), SoType.Text, null);
+                        //parm.MetaData.DisplayName = "Parameter " + k.ToString() + " (Display Name)";
+                        //parm.MetaData.Description = "Sample Parameter";
+                        //method.MethodParameters.Create(parm);
+                    }
+
+                    //if the method type is List, add each of the available Properties as an available input property for the method
+                    if (method.Type == MethodType.List || method.Type == MethodType.Create)
+                    {
+                        foreach (Property prop in obj.Properties)
+                        {
+                            method.InputProperties.Add(prop);
+                        }
+                    }
+
+                    //Set the method return Properties using all the available Properties of the ServiceObject
+                    foreach (Property prop in obj.Properties)
+                    {
+                        method.ReturnProperties.Add(prop);
+                    }
+
+                    //add the method to the Service Object
+                    obj.Methods.Add(method);
+                    method = null;
+                }
+
+                //add the generated service object to the List of ServiceObjects
+                templateSvcObjects.Add(obj);
+                obj = null;
             }
-            //Set the method return Properties using all the available Properties of the ServiceObject
-            foreach (Property prop in documentSvcObject.Properties)
-            {
-                method.ReturnProperties.Add(prop);
-            }
-
-            //add the method to the Service Object
-            documentSvcObject.Methods.Add(method);
-
-            method = null;
-            method = new Method();
-            method.Name = "Write";
-            method.Type = MethodType.Update;
-            method.MetaData.DisplayName = "Write";
-            //if the method type is Read, define a Key property using the first property for the ServiceObject
-
-            // Set up key property as the first Property of the SmartObject
-            method.InputProperties.Add(documentSvcObject.Properties[0]);
-
-            // Mark the key property as required.
-            method.Validation.RequiredProperties.Add(documentSvcObject.Properties[0]);
-
-            ////Include a Method Parameter which is required, but not returned as a property
-            //MethodParameter parm = new MethodParameter("Parameter " + k.ToString(), typeof(System.String).ToString(), SoType.Text, null);
-            //parm.MetaData.DisplayName = "Parameter " + k.ToString() + " (Display Name)";
-            //parm.MetaData.Description = "Sample Parameter";
-            //method.MethodParameters.Create(parm);
-            //Set the method return Properties using all the available Properties of the ServiceObject
-            foreach (Property prop in documentSvcObject.Properties)
-            {
-                method.ReturnProperties.Add(prop);
-            }
-            //add the method to the Service Object
-            documentSvcObject.Methods.Add(method);
-
-
-            method = null;
-            method = new Method();
-            method.Name = "Insert";
-            method.Type = MethodType.Create;
-            method.MetaData.DisplayName = "Insert";
-            foreach (Property prop in documentSvcObject.Properties)
-            {
-                method.InputProperties.Add(prop);
-            }
-            //Set the method return Properties using all the available Properties of the ServiceObject
-            foreach (Property prop in documentSvcObject.Properties)
-            {
-                method.ReturnProperties.Add(prop);
-            }
-            //add the method to the Service Object
-            documentSvcObject.Methods.Add(method);
-
-
-            method = null;
-            method = new Method();
-            method.Name = "Search";
-            method.Type = MethodType.List;
-            method.MetaData.DisplayName = "Search";
-            foreach (Property prop in documentSvcObject.Properties)
-            {
-                method.InputProperties.Add(prop);
-            }
-            //Set the method return Properties using all the available Properties of the ServiceObject
-            foreach (Property prop in documentSvcObject.Properties)
-            {
-                method.ReturnProperties.Add(prop);
-            }
-            //add the method to the Service Object
-            documentSvcObject.Methods.Add(method);
 
             //return the collection of defined Service Objects
-            return documentSvcObject;
-
-
-
+            return templateSvcObjects;
         }
+        //public ServiceObject GenerateTemplatesServiceObject()
+        //{
 
-        public ServiceObject GenerateTemplatesServiceObject2()
-        {
+        //    //document service object
+        //    ServiceObject documentSvcObject = new ServiceObject();
 
-            //document service object
-            ServiceObject documentSvcObject = new ServiceObject();
-
-            Property property = null;
-            Method method = null;
-            //load the Type Mappings as defined by the SetTypeMappings() method
-            TypeMappings map = GetTypeMappings();
-
-
-            //Note: ServiceObject Name should not contain space
-            documentSvcObject.Name = "Templates2";
-            documentSvcObject.MetaData.DisplayName = "Templates2";
-            //IMPORTANT: You must activate the Service Object
-            documentSvcObject.Active = true;
-
-            property = new Property();
-            property.Name = "DocumentID";
-            property.MetaData.DisplayName = "DocumentID";
-            //Property Type should be set to a .NET type
-            //based on the Property type, lookup and set SoType using the Property Mappings defined in the SetTypeMappings() method
-            property.SoType = map[typeof(System.Int32).ToString()];
-            //You can store the backend type here if you needed to, like this
-            //property.MetaData.ServiceProperties.Add("String", "TEXT"); 
-            documentSvcObject.Properties.Add(property);
-            property = null;
-
-            property = new Property();
-            property.Name = "DocumentName";
-            property.MetaData.DisplayName = "DocumentName";
-            //Property Type should be set to a .NET type
-            //based on the Property type, lookup and set SoType using the Property Mappings defined in the SetTypeMappings() method
-            property.SoType = map[typeof(System.String).ToString()];
-            //You can store the backend type here if you needed to, like this
-            //property.MetaData.ServiceProperties.Add("String", "TEXT"); 
-            documentSvcObject.Properties.Add(property);
-            property = null;
-
-            property = new Property();
-            property.Name = "NumberOfPages";
-            property.MetaData.DisplayName = "NumberOfPages";
-            //Property Type should be set to a .NET type
-            //based on the Property type, lookup and set SoType using the Property Mappings defined in the SetTypeMappings() method
-            property.SoType = map[typeof(System.Int32).ToString()];
-            //You can store the backend type here if you needed to, like this
-            //property.MetaData.ServiceProperties.Add("String", "TEXT"); 
-            documentSvcObject.Properties.Add(property);
-            property = null;
-
-            property = new Property();
-            property.Name = "Path";
-            property.MetaData.DisplayName = "Path";
-            //Property Type should be set to a .NET type
-            //based on the Property type, lookup and set SoType using the Property Mappings defined in the SetTypeMappings() method
-            property.SoType = map[typeof(System.String).ToString()];
-            //You can store the backend type here if you needed to, like this
-            //property.MetaData.ServiceProperties.Add("String", "TEXT"); 
-            documentSvcObject.Properties.Add(property);
-            property = null;
-
-            property = new Property();
-            property.Name = "TemplateName";
-            property.MetaData.DisplayName = "TemplateName";
-            //Property Type should be set to a .NET type
-            //based on the Property type, lookup and set SoType using the Property Mappings defined in the SetTypeMappings() method
-            property.SoType = map[typeof(System.String).ToString()];
-            //You can store the backend type here if you needed to, like this
-            //property.MetaData.ServiceProperties.Add("String", "TEXT"); 
-            documentSvcObject.Properties.Add(property);
-            property = null;
+        //    Property property = null;
+        //    Method method = null;
+        //    //load the Type Mappings as defined by the SetTypeMappings() method
+        //    TypeMappings map = GetTypeMappings();
 
 
-            //Add a Method for the Service Object
-            method = new Method();
-            method.Name = "Read";
-            method.Type = MethodType.Read;
-            method.MetaData.DisplayName = "Read";
-            //if the method type is Read, define a Key property using the first property for the ServiceObject
-            if (method.Type == MethodType.Read)
-            {
-                // Set up key property as the first Property of the SmartObject
-                method.InputProperties.Add(documentSvcObject.Properties[0]);
+        //    //Note: ServiceObject Name should not contain space
+        //    documentSvcObject.Name = "Templates1";
+        //    documentSvcObject.MetaData.DisplayName = "Templates1";
+        //    //IMPORTANT: You must activate the Service Object
+        //    documentSvcObject.Active = true;
 
-                // Mark the key property as required.
-                method.Validation.RequiredProperties.Add(documentSvcObject.Properties[0]);
+        //    property = new Property();
+        //    property.Name = "DocumentID";
+        //    property.MetaData.DisplayName = "DocumentID";
+        //    //Property Type should be set to a .NET type
+        //    //based on the Property type, lookup and set SoType using the Property Mappings defined in the SetTypeMappings() method
+        //    property.SoType = map[typeof(System.Int32).ToString()];
+        //    //You can store the backend type here if you needed to, like this
+        //    //property.MetaData.ServiceProperties.Add("String", "TEXT"); 
+        //    documentSvcObject.Properties.Add(property);
+        //    property = null;
 
-                ////Include a Method Parameter which is required, but not returned as a property
-                //MethodParameter parm = new MethodParameter("Parameter " + k.ToString(), typeof(System.String).ToString(), SoType.Text, null);
-                //parm.MetaData.DisplayName = "Parameter " + k.ToString() + " (Display Name)";
-                //parm.MetaData.Description = "Sample Parameter";
-                //method.MethodParameters.Create(parm);
-            }
-            //Set the method return Properties using all the available Properties of the ServiceObject
-            foreach (Property prop in documentSvcObject.Properties)
-            {
-                method.ReturnProperties.Add(prop);
-            }
+        //    property = new Property();
+        //    property.Name = "DocumentName";
+        //    property.MetaData.DisplayName = "DocumentName";
+        //    //Property Type should be set to a .NET type
+        //    //based on the Property type, lookup and set SoType using the Property Mappings defined in the SetTypeMappings() method
+        //    property.SoType = map[typeof(System.String).ToString()];
+        //    //You can store the backend type here if you needed to, like this
+        //    //property.MetaData.ServiceProperties.Add("String", "TEXT"); 
+        //    documentSvcObject.Properties.Add(property);
+        //    property = null;
 
-            //add the method to the Service Object
-            documentSvcObject.Methods.Add(method);
+        //    property = new Property();
+        //    property.Name = "NumberOfPages";
+        //    property.MetaData.DisplayName = "NumberOfPages";
+        //    //Property Type should be set to a .NET type
+        //    //based on the Property type, lookup and set SoType using the Property Mappings defined in the SetTypeMappings() method
+        //    property.SoType = map[typeof(System.Int32).ToString()];
+        //    //You can store the backend type here if you needed to, like this
+        //    //property.MetaData.ServiceProperties.Add("String", "TEXT"); 
+        //    documentSvcObject.Properties.Add(property);
+        //    property = null;
 
-            method = null;
-            method = new Method();
-            method.Name = "Write";
-            method.Type = MethodType.Update;
-            method.MetaData.DisplayName = "Write";
-            //if the method type is Read, define a Key property using the first property for the ServiceObject
+        //    property = new Property();
+        //    property.Name = "Path";
+        //    property.MetaData.DisplayName = "Path";
+        //    //Property Type should be set to a .NET type
+        //    //based on the Property type, lookup and set SoType using the Property Mappings defined in the SetTypeMappings() method
+        //    property.SoType = map[typeof(System.String).ToString()];
+        //    //You can store the backend type here if you needed to, like this
+        //    //property.MetaData.ServiceProperties.Add("String", "TEXT"); 
+        //    documentSvcObject.Properties.Add(property);
+        //    property = null;
 
-            // Set up key property as the first Property of the SmartObject
-            method.InputProperties.Add(documentSvcObject.Properties[0]);
-
-            // Mark the key property as required.
-            method.Validation.RequiredProperties.Add(documentSvcObject.Properties[0]);
-
-            ////Include a Method Parameter which is required, but not returned as a property
-            //MethodParameter parm = new MethodParameter("Parameter " + k.ToString(), typeof(System.String).ToString(), SoType.Text, null);
-            //parm.MetaData.DisplayName = "Parameter " + k.ToString() + " (Display Name)";
-            //parm.MetaData.Description = "Sample Parameter";
-            //method.MethodParameters.Create(parm);
-            //Set the method return Properties using all the available Properties of the ServiceObject
-            foreach (Property prop in documentSvcObject.Properties)
-            {
-                method.ReturnProperties.Add(prop);
-            }
-            //add the method to the Service Object
-            documentSvcObject.Methods.Add(method);
-
-
-            method = null;
-            method = new Method();
-            method.Name = "Insert";
-            method.Type = MethodType.Create;
-            method.MetaData.DisplayName = "Insert";
-            foreach (Property prop in documentSvcObject.Properties)
-            {
-                method.InputProperties.Add(prop);
-            }
-            //Set the method return Properties using all the available Properties of the ServiceObject
-            foreach (Property prop in documentSvcObject.Properties)
-            {
-                method.ReturnProperties.Add(prop);
-            }
-            //add the method to the Service Object
-            documentSvcObject.Methods.Add(method);
+        //    property = new Property();
+        //    property.Name = "TemplateName";
+        //    property.MetaData.DisplayName = "TemplateName";
+        //    //Property Type should be set to a .NET type
+        //    //based on the Property type, lookup and set SoType using the Property Mappings defined in the SetTypeMappings() method
+        //    property.SoType = map[typeof(System.String).ToString()];
+        //    //You can store the backend type here if you needed to, like this
+        //    //property.MetaData.ServiceProperties.Add("String", "TEXT"); 
+        //    documentSvcObject.Properties.Add(property);
+        //    property = null;
 
 
-            method = null;
-            method = new Method();
-            method.Name = "Search";
-            method.Type = MethodType.List;
-            method.MetaData.DisplayName = "Search";
-            foreach (Property prop in documentSvcObject.Properties)
-            {
-                method.InputProperties.Add(prop);
-            }
-            //Set the method return Properties using all the available Properties of the ServiceObject
-            foreach (Property prop in documentSvcObject.Properties)
-            {
-                method.ReturnProperties.Add(prop);
-            }
-            //add the method to the Service Object
-            documentSvcObject.Methods.Add(method);
+        //    //Add a Method for the Service Object
+        //    method = new Method();
+        //    method.Name = "Read";
+        //    method.Type = MethodType.Read;
+        //    method.MetaData.DisplayName = "Read";
+        //    //if the method type is Read, define a Key property using the first property for the ServiceObject
+        //    if (method.Type == MethodType.Read)
+        //    {
+        //        // Set up key property as the first Property of the SmartObject
+        //        method.InputProperties.Add(documentSvcObject.Properties[0]);
 
-            //return the collection of defined Service Objects
-            return documentSvcObject;
+        //        // Mark the key property as required.
+        //        method.Validation.RequiredProperties.Add(documentSvcObject.Properties[0]);
 
+        //        ////Include a Method Parameter which is required, but not returned as a property
+        //        //MethodParameter parm = new MethodParameter("Parameter " + k.ToString(), typeof(System.String).ToString(), SoType.Text, null);
+        //        //parm.MetaData.DisplayName = "Parameter " + k.ToString() + " (Display Name)";
+        //        //parm.MetaData.Description = "Sample Parameter";
+        //        //method.MethodParameters.Create(parm);
+        //    }
+        //    //Set the method return Properties using all the available Properties of the ServiceObject
+        //    foreach (Property prop in documentSvcObject.Properties)
+        //    {
+        //        method.ReturnProperties.Add(prop);
+        //    }
 
+        //    //add the method to the Service Object
+        //    documentSvcObject.Methods.Add(method);
 
-        }
+        //    method = null;
+        //    method = new Method();
+        //    method.Name = "Write";
+        //    method.Type = MethodType.Update;
+        //    method.MetaData.DisplayName = "Write";
+        //    //if the method type is Read, define a Key property using the first property for the ServiceObject
 
-        public ServiceObject GenerateTemplatesServiceObject3()
-        {
+        //    // Set up key property as the first Property of the SmartObject
+        //    method.InputProperties.Add(documentSvcObject.Properties[0]);
 
-            //document service object
-            ServiceObject documentSvcObject = new ServiceObject();
+        //    // Mark the key property as required.
+        //    method.Validation.RequiredProperties.Add(documentSvcObject.Properties[0]);
 
-            Property property = null;
-            Method method = null;
-            //load the Type Mappings as defined by the SetTypeMappings() method
-            TypeMappings map = GetTypeMappings();
-
-
-            //Note: ServiceObject Name should not contain space
-            documentSvcObject.Name = "Templates3";
-            documentSvcObject.MetaData.DisplayName = "Templates3";
-            //IMPORTANT: You must activate the Service Object
-            documentSvcObject.Active = true;
-
-            property = new Property();
-            property.Name = "DocumentID";
-            property.MetaData.DisplayName = "DocumentID";
-            //Property Type should be set to a .NET type
-            //based on the Property type, lookup and set SoType using the Property Mappings defined in the SetTypeMappings() method
-            property.SoType = map[typeof(System.Int32).ToString()];
-            //You can store the backend type here if you needed to, like this
-            //property.MetaData.ServiceProperties.Add("String", "TEXT"); 
-            documentSvcObject.Properties.Add(property);
-            property = null;
-
-            property = new Property();
-            property.Name = "DocumentName";
-            property.MetaData.DisplayName = "DocumentName";
-            //Property Type should be set to a .NET type
-            //based on the Property type, lookup and set SoType using the Property Mappings defined in the SetTypeMappings() method
-            property.SoType = map[typeof(System.String).ToString()];
-            //You can store the backend type here if you needed to, like this
-            //property.MetaData.ServiceProperties.Add("String", "TEXT"); 
-            documentSvcObject.Properties.Add(property);
-            property = null;
-
-            property = new Property();
-            property.Name = "NumberOfPages";
-            property.MetaData.DisplayName = "NumberOfPages";
-            //Property Type should be set to a .NET type
-            //based on the Property type, lookup and set SoType using the Property Mappings defined in the SetTypeMappings() method
-            property.SoType = map[typeof(System.Int32).ToString()];
-            //You can store the backend type here if you needed to, like this
-            //property.MetaData.ServiceProperties.Add("String", "TEXT"); 
-            documentSvcObject.Properties.Add(property);
-            property = null;
-
-            property = new Property();
-            property.Name = "Path";
-            property.MetaData.DisplayName = "Path";
-            //Property Type should be set to a .NET type
-            //based on the Property type, lookup and set SoType using the Property Mappings defined in the SetTypeMappings() method
-            property.SoType = map[typeof(System.String).ToString()];
-            //You can store the backend type here if you needed to, like this
-            //property.MetaData.ServiceProperties.Add("String", "TEXT"); 
-            documentSvcObject.Properties.Add(property);
-            property = null;
-
-            property = new Property();
-            property.Name = "TemplateName";
-            property.MetaData.DisplayName = "TemplateName";
-            //Property Type should be set to a .NET type
-            //based on the Property type, lookup and set SoType using the Property Mappings defined in the SetTypeMappings() method
-            property.SoType = map[typeof(System.String).ToString()];
-            //You can store the backend type here if you needed to, like this
-            //property.MetaData.ServiceProperties.Add("String", "TEXT"); 
-            documentSvcObject.Properties.Add(property);
-            property = null;
+        //    ////Include a Method Parameter which is required, but not returned as a property
+        //    //MethodParameter parm = new MethodParameter("Parameter " + k.ToString(), typeof(System.String).ToString(), SoType.Text, null);
+        //    //parm.MetaData.DisplayName = "Parameter " + k.ToString() + " (Display Name)";
+        //    //parm.MetaData.Description = "Sample Parameter";
+        //    //method.MethodParameters.Create(parm);
+        //    //Set the method return Properties using all the available Properties of the ServiceObject
+        //    foreach (Property prop in documentSvcObject.Properties)
+        //    {
+        //        method.ReturnProperties.Add(prop);
+        //    }
+        //    //add the method to the Service Object
+        //    documentSvcObject.Methods.Add(method);
 
 
-            //Add a Method for the Service Object
-            method = new Method();
-            method.Name = "Read";
-            method.Type = MethodType.Read;
-            method.MetaData.DisplayName = "Read";
-            //if the method type is Read, define a Key property using the first property for the ServiceObject
-            if (method.Type == MethodType.Read)
-            {
-                // Set up key property as the first Property of the SmartObject
-                method.InputProperties.Add(documentSvcObject.Properties[0]);
-
-                // Mark the key property as required.
-                method.Validation.RequiredProperties.Add(documentSvcObject.Properties[0]);
-
-                ////Include a Method Parameter which is required, but not returned as a property
-                //MethodParameter parm = new MethodParameter("Parameter " + k.ToString(), typeof(System.String).ToString(), SoType.Text, null);
-                //parm.MetaData.DisplayName = "Parameter " + k.ToString() + " (Display Name)";
-                //parm.MetaData.Description = "Sample Parameter";
-                //method.MethodParameters.Create(parm);
-            }
-            //Set the method return Properties using all the available Properties of the ServiceObject
-            foreach (Property prop in documentSvcObject.Properties)
-            {
-                method.ReturnProperties.Add(prop);
-            }
-
-            //add the method to the Service Object
-            documentSvcObject.Methods.Add(method);
-
-            method = null;
-            method = new Method();
-            method.Name = "Write";
-            method.Type = MethodType.Update;
-            method.MetaData.DisplayName = "Write";
-            //if the method type is Read, define a Key property using the first property for the ServiceObject
-
-            // Set up key property as the first Property of the SmartObject
-            method.InputProperties.Add(documentSvcObject.Properties[0]);
-
-            // Mark the key property as required.
-            method.Validation.RequiredProperties.Add(documentSvcObject.Properties[0]);
-
-            ////Include a Method Parameter which is required, but not returned as a property
-            //MethodParameter parm = new MethodParameter("Parameter " + k.ToString(), typeof(System.String).ToString(), SoType.Text, null);
-            //parm.MetaData.DisplayName = "Parameter " + k.ToString() + " (Display Name)";
-            //parm.MetaData.Description = "Sample Parameter";
-            //method.MethodParameters.Create(parm);
-            //Set the method return Properties using all the available Properties of the ServiceObject
-            foreach (Property prop in documentSvcObject.Properties)
-            {
-                method.ReturnProperties.Add(prop);
-            }
-            //add the method to the Service Object
-            documentSvcObject.Methods.Add(method);
+        //    method = null;
+        //    method = new Method();
+        //    method.Name = "Insert";
+        //    method.Type = MethodType.Create;
+        //    method.MetaData.DisplayName = "Insert";
+        //    foreach (Property prop in documentSvcObject.Properties)
+        //    {
+        //        method.InputProperties.Add(prop);
+        //    }
+        //    //Set the method return Properties using all the available Properties of the ServiceObject
+        //    foreach (Property prop in documentSvcObject.Properties)
+        //    {
+        //        method.ReturnProperties.Add(prop);
+        //    }
+        //    //add the method to the Service Object
+        //    documentSvcObject.Methods.Add(method);
 
 
-            method = null;
-            method = new Method();
-            method.Name = "Insert";
-            method.Type = MethodType.Create;
-            method.MetaData.DisplayName = "Insert";
-            foreach (Property prop in documentSvcObject.Properties)
-            {
-                method.InputProperties.Add(prop);
-            }
-            //Set the method return Properties using all the available Properties of the ServiceObject
-            foreach (Property prop in documentSvcObject.Properties)
-            {
-                method.ReturnProperties.Add(prop);
-            }
-            //add the method to the Service Object
-            documentSvcObject.Methods.Add(method);
+        //    method = null;
+        //    method = new Method();
+        //    method.Name = "Search";
+        //    method.Type = MethodType.List;
+        //    method.MetaData.DisplayName = "Search";
+        //    foreach (Property prop in documentSvcObject.Properties)
+        //    {
+        //        method.InputProperties.Add(prop);
+        //    }
+        //    //Set the method return Properties using all the available Properties of the ServiceObject
+        //    foreach (Property prop in documentSvcObject.Properties)
+        //    {
+        //        method.ReturnProperties.Add(prop);
+        //    }
+        //    //add the method to the Service Object
+        //    documentSvcObject.Methods.Add(method);
 
-
-            method = null;
-            method = new Method();
-            method.Name = "Search";
-            method.Type = MethodType.List;
-            method.MetaData.DisplayName = "Search";
-            foreach (Property prop in documentSvcObject.Properties)
-            {
-                method.InputProperties.Add(prop);
-            }
-            //Set the method return Properties using all the available Properties of the ServiceObject
-            foreach (Property prop in documentSvcObject.Properties)
-            {
-                method.ReturnProperties.Add(prop);
-            }
-            //add the method to the Service Object
-            documentSvcObject.Methods.Add(method);
-
-            //return the collection of defined Service Objects
-            return documentSvcObject;
+        //    //return the collection of defined Service Objects
+        //    return documentSvcObject;
 
 
 
-        }
+        //}
 
-        public ServiceObject GenerateWorkflowsServiceObject()
+        public ServiceObject GenerateWorkflowServiceObjects()
         {
 
             //document service object
@@ -1137,155 +905,6 @@ namespace K2.LaserficheServiceObject.DataConnectors
 
         }
 
-        public ServiceObject GenerateWorkflowsServiceObject2()
-        {
-
-            //document service object
-            ServiceObject documentSvcObject = new ServiceObject();
-
-            Property property = null;
-            Method method = null;
-            //load the Type Mappings as defined by the SetTypeMappings() method
-            TypeMappings map = GetTypeMappings();
-
-
-            //Note: ServiceObject Name should not contain space
-            documentSvcObject.Name = "Workflows2";
-            documentSvcObject.MetaData.DisplayName = "Workflows2";
-            //IMPORTANT: You must activate the Service Object
-            documentSvcObject.Active = true;
-
-            property = new Property();
-            property.Name = "WorkflowID";
-            property.MetaData.DisplayName = "WorkflowID";
-            //Property Type should be set to a .NET type
-            //based on the Property type, lookup and set SoType using the Property Mappings defined in the SetTypeMappings() method
-            property.SoType = map[typeof(System.Int32).ToString()];
-            //You can store the backend type here if you needed to, like this
-            //property.MetaData.ServiceProperties.Add("String", "TEXT"); 
-            documentSvcObject.Properties.Add(property);
-            property = null;
-
-            property = new Property();
-            property.Name = "WorkflowName";
-            property.MetaData.DisplayName = "WorkflowName";
-            //Property Type should be set to a .NET type
-            //based on the Property type, lookup and set SoType using the Property Mappings defined in the SetTypeMappings() method
-            property.SoType = map[typeof(System.String).ToString()];
-            //You can store the backend type here if you needed to, like this
-            //property.MetaData.ServiceProperties.Add("String", "TEXT"); 
-            documentSvcObject.Properties.Add(property);
-            property = null;
-
-            //Add a Method for the Service Object
-            method = new Method();
-            method.Name = "Start";
-            method.Type = MethodType.Execute;
-            method.MetaData.DisplayName = "Start";
-            //if the method type is Read, define a Key property using the first property for the ServiceObject
-            if (method.Type == MethodType.Execute)
-            {
-                foreach (Property prop in documentSvcObject.Properties)
-                {
-                    method.InputProperties.Add(prop);
-                }
-
-                //Include a Method Parameter, not returned as a property
-                MethodParameter parm = new MethodParameter("EntryID", typeof(System.Int32).ToString(), SoType.Number, null);
-                parm.IsRequired = false;
-                parm.MetaData.DisplayName = "EntryID";
-                parm.MetaData.Description = "EntryID";
-                method.MethodParameters.Create(parm);
-            }
-            //Set the method return Properties using all the available Properties of the ServiceObject
-            foreach (Property prop in documentSvcObject.Properties)
-            {
-                method.ReturnProperties.Add(prop);
-            }
-
-            //add the method to the Service Object
-            documentSvcObject.Methods.Add(method);
-
-
-            //return the collection of defined Service Objects
-            return documentSvcObject;
-
-        }
-
-        public ServiceObject GenerateWorkflowsServiceObject3()
-        {
-
-            //document service object
-            ServiceObject documentSvcObject = new ServiceObject();
-
-            Property property = null;
-            Method method = null;
-            //load the Type Mappings as defined by the SetTypeMappings() method
-            TypeMappings map = GetTypeMappings();
-
-
-            //Note: ServiceObject Name should not contain space
-            documentSvcObject.Name = "Workflows3";
-            documentSvcObject.MetaData.DisplayName = "Workflows3";
-            //IMPORTANT: You must activate the Service Object
-            documentSvcObject.Active = true;
-
-            property = new Property();
-            property.Name = "WorkflowID";
-            property.MetaData.DisplayName = "WorkflowID";
-            //Property Type should be set to a .NET type
-            //based on the Property type, lookup and set SoType using the Property Mappings defined in the SetTypeMappings() method
-            property.SoType = map[typeof(System.Int32).ToString()];
-            //You can store the backend type here if you needed to, like this
-            //property.MetaData.ServiceProperties.Add("String", "TEXT"); 
-            documentSvcObject.Properties.Add(property);
-            property = null;
-
-            property = new Property();
-            property.Name = "WorkflowName";
-            property.MetaData.DisplayName = "WorkflowName";
-            //Property Type should be set to a .NET type
-            //based on the Property type, lookup and set SoType using the Property Mappings defined in the SetTypeMappings() method
-            property.SoType = map[typeof(System.String).ToString()];
-            //You can store the backend type here if you needed to, like this
-            //property.MetaData.ServiceProperties.Add("String", "TEXT"); 
-            documentSvcObject.Properties.Add(property);
-            property = null;
-
-            //Add a Method for the Service Object
-            method = new Method();
-            method.Name = "Start";
-            method.Type = MethodType.Execute;
-            method.MetaData.DisplayName = "Start";
-            //if the method type is Read, define a Key property using the first property for the ServiceObject
-            if (method.Type == MethodType.Execute)
-            {
-                foreach (Property prop in documentSvcObject.Properties)
-                {
-                    method.InputProperties.Add(prop);
-                }
-
-                //Include a Method Parameter, not returned as a property
-                MethodParameter parm = new MethodParameter("EntryID", typeof(System.Int32).ToString(), SoType.Number, null);
-                parm.IsRequired = false;
-                parm.MetaData.DisplayName = "EntryID";
-                parm.MetaData.Description = "EntryID";
-                method.MethodParameters.Create(parm);
-            }
-            //Set the method return Properties using all the available Properties of the ServiceObject
-            foreach (Property prop in documentSvcObject.Properties)
-            {
-                method.ReturnProperties.Add(prop);
-            }
-
-            //add the method to the Service Object
-            documentSvcObject.Methods.Add(method);
-
-
-            //return the collection of defined Service Objects
-            return documentSvcObject;
-
-        }
 
         #endregion
 
@@ -1302,38 +921,34 @@ namespace K2.LaserficheServiceObject.DataConnectors
             //Prepare the Service Object to receive returned data.
             serviceObject.Properties.InitResultTable();
 
-            //If you needed to, you can access method parameters like this:
-            foreach (MethodParameter parameter in parameters)
-            {
-                string parameterVame = parameter.Name;
-                object parameterValue = parameter.Value;
-            }
-
-            LaserficheProvider lp = new LaserficheProvider(this._requiredLaserficheServerValue,this._requiredLaserficheRepositoryValue);
+            LaserficheProvider lp = new LaserficheProvider(_requiredLaserficheServerValue, _requiredLaserficheRepositoryValue);
             DocumentInfo docInfo;
             lp.Connect();
             docInfo = lp.GetDocumentByEntryID(Int32.Parse(inputProperties[0].Value.ToString()));
+            lp.Logout();
 
             //For demonstration purposes, set the Service Object (record)'s properties with random values.
-            Random rnd = new Random();
             for (int i = 0; i < returnProperties.Length; i++)
             {
-                //if this is the first (key) value, set the property to the first input property to simulate a read record based on some key input property
-                if (returnProperties[i].Name == requiredProperties[0])
+
+                switch (returnProperties[i].Name)
                 {
-                    serviceObject.Properties[i].Value = inputProperties[i].Value;
+                    case "DocumentID":
+                        serviceObject.Properties[i].Value = docInfo.Id;
+                        break;
+                    case "DocumentName":
+                        serviceObject.Properties[i].Value = docInfo.Name;
+                        break;
+                    case "NumberOfPages":
+                        serviceObject.Properties[i].Value = docInfo.PageCount;
+                        break;
+                    case "Path":
+                        serviceObject.Properties[i].Value = docInfo.Path;
+                        break;
+                    case "TemplateName":
+                        serviceObject.Properties[i].Value = docInfo.TemplateName;
+                        break;
                 }
-                //for all other properties, just use random values
-                else
-                    switch (serviceObject.Properties[i].SoType)
-                    {
-                        case SoType.Text:
-                            serviceObject.Properties[i].Value = RandomString(rnd.Next(8, 20));
-                            break;
-                        case SoType.Number:
-                            serviceObject.Properties[i].Value = rnd.Next(5, 100);
-                            break;
-                    }
             }
 
             //Commit the changes to the Service Object. 
@@ -1385,7 +1000,7 @@ namespace K2.LaserficheServiceObject.DataConnectors
         /// <param name="returnProperties"></param>
         /// <param name="parameters"></param>
         /// <param name="serviceObject"></param>
-        private void ExecuteDocumentRuntimeListMethod(Property[] inputProperties, RequiredProperties requiredProperties, Property[] returnProperties, MethodParameters parameters, ServiceObject serviceObject)
+        private void ExecuteDocumentRuntimeCreateMethod(Property[] inputProperties, RequiredProperties requiredProperties, Property[] returnProperties, MethodParameters parameters, ServiceObject serviceObject)
         {
 
             //store the input properties in a temp location since they will be overwritten when BindPropertiesToResultTable() is called
