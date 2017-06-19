@@ -5,19 +5,20 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>d8b36ac5-7131-4e59-b159-894d2cd033e6</ProjectGuid>
+    <ProjectGuid>{D8B36AC5-7131-4E59-B159-894D2CD033E6}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>LaserficheServiceObject</RootNamespace>
-    <AssemblyName>LaserficheServiceObject</AssemblyName>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <RootNamespace>K2.LaserficheServiceObject</RootNamespace>
+    <AssemblyName>K2.LaserficheServiceObject</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>..\..\..\..\..\..\..\Program Files %28x86%29\K2 blackpearl\ServiceBroker\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -51,6 +52,19 @@
     <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Interop.DocumentProcessor92, Version=9.2.0.0, Culture=neutral, PublicKeyToken=607dd73ee2bd1c00, processorArchitecture=MSIL">
+      <HintPath>..\..\..\..\..\..\..\Windows\assembly\GAC_MSIL\Interop.DocumentProcessor92\9.2.0.0__607dd73ee2bd1c00\Interop.DocumentProcessor92.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Laserfiche.DocumentServices, Version=9.0.0.0, Culture=neutral, PublicKeyToken=3f98b3eaee6c16a6, processorArchitecture=MSIL">
+      <HintPath>..\..\..\..\..\..\..\Windows\assembly\GAC_MSIL\Laserfiche.DocumentServices\9.0.0.0__3f98b3eaee6c16a6\Laserfiche.DocumentServices.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="Laserfiche.RepositoryAccess, Version=9.0.0.0, Culture=neutral, PublicKeyToken=3f98b3eaee6c16a6, processorArchitecture=MSIL">
+      <HintPath>..\..\..\..\..\..\..\Windows\assembly\GAC_MSIL\Laserfiche.RepositoryAccess\9.0.0.0__3f98b3eaee6c16a6\Laserfiche.RepositoryAccess.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
     <Reference Include="SourceCode.SmartObjects.Services.ServiceSDK, Version=4.0.0.0, Culture=neutral, PublicKeyToken=16a2c5aaaa1b130d, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.Core">
@@ -68,6 +82,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Data\DataConnector.cs" />
+    <Compile Include="Data\LaserficheProvider.cs" />
     <Compile Include="Interfaces\IDataConnector.cs" />
     <Compile Include="ServiceBrokers\ServiceBroker.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

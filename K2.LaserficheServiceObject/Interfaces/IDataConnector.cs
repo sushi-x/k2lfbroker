@@ -7,7 +7,7 @@ using SourceCode.SmartObjects.Services.ServiceSDK.Attributes;
 using SourceCode.SmartObjects.Services.ServiceSDK.Objects;
 using SourceCode.SmartObjects.Services.ServiceSDK.Types;
 
-namespace LaserficheServiceObject.Interfaces
+namespace K2.LaserficheServiceObject.Interfaces
 {
     /// <summary>
     /// An interface for concrete classes responsible for interacting with underlying systems or technologies.

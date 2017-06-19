@@ -7,10 +7,10 @@ using SourceCode.SmartObjects.Services.ServiceSDK;
 using SourceCode.SmartObjects.Services.ServiceSDK.Objects;
 using SourceCode.SmartObjects.Services.ServiceSDK.Types;
 
-using LaserficheServiceObject.DataConnectors;
-using LaserficheServiceObject.Interfaces;
+using K2.LaserficheServiceObject.DataConnectors;
+//using LaserficheServiceObject.Interfaces;
 
-namespace LaserficheServiceObject.ServiceBrokers
+namespace K2.LaserficheServiceObject.ServiceBrokers
 {
     /// <summary>
     /// A ServiceBroker responsible for brokering communications between the K2 platform and an underlying system or technology.
