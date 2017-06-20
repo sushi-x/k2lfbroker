@@ -253,7 +253,7 @@ namespace K2.LaserficheServiceObject.DataConnectors
             //in this sample, we are interrogating the method type and calling one of two helper methods, depending on whether this was a "Read" method or a "List" method
             //refer to the helper method to see how the various method parameters are used.
             //You will probably need to handle the other Method Types (e.g. Create, Delete etc.) as well.
-            if (serviceObject.Name== "Documents ServiceObject")
+            if (serviceObject.Name== "Documents")
             {
                 switch (methodType)
                 {
@@ -267,17 +267,7 @@ namespace K2.LaserficheServiceObject.DataConnectors
                         throw new NotImplementedException("The helper for the specified method type (" + methodType.ToString() + ") has not been implemented");
                 }
             }
-            //switch (methodType)
-            //{
-            //    case MethodType.Read:
-            //        ExecuteRuntimeReadMethod(inputProperties, requiredProperties, returnProperties, parameters, serviceObject);
-            //        break;
-            //    case MethodType.List:
-            //        ExecuteRuntimeListMethod(inputProperties, requiredProperties, returnProperties, parameters, serviceObject);
-            //        break;
-            //    default:
-            //        throw new NotImplementedException("The helper for the specified method type (" + methodType.ToString() + ") has not been implemented");
-            //}
+
         }
         #endregion
  
@@ -498,31 +488,29 @@ namespace K2.LaserficheServiceObject.DataConnectors
             documentSvcObject.Methods.Add(method);
 
 
-            //method = null;
-            method = new Method();
-            method.Name = "Insert";
-            method.Type = MethodType.Create;
-            method.MetaData.DisplayName = "Insert";
-            //if the method type is Read, define a Key property using the first property for the ServiceObject
-            if (method.Type == MethodType.Update)
-            {
-                foreach (Property prop in documentSvcObject.Properties)
-                {
-                    method.InputProperties.Add(prop);
-                }
-            }
-            //Set the method return Properties using all the available Properties of the ServiceObject
-            foreach (Property prop in documentSvcObject.Properties)
-            {
-                method.ReturnProperties.Add(prop);
-            }
-            //add the method to the Service Object
-            documentSvcObject.Methods.Add(method);
+            ////method = null;
+            //method = new Method();
+            //method.Name = "Insert";
+            //method.Type = MethodType.Create;
+            //method.MetaData.DisplayName = "Insert";
+            ////if the method type is Read, define a Key property using the first property for the ServiceObject
+            //if (method.Type == MethodType.Update)
+            //{
+            //    foreach (Property prop in documentSvcObject.Properties)
+            //    {
+            //        method.InputProperties.Add(prop);
+            //    }
+            //}
+            ////Set the method return Properties using all the available Properties of the ServiceObject
+            //foreach (Property prop in documentSvcObject.Properties)
+            //{
+            //    method.ReturnProperties.Add(prop);
+            //}
+            ////add the method to the Service Object
+            //documentSvcObject.Methods.Add(method);
 
-            //return the collection of defined Service Objects
+            //return the Service Object
             return documentSvcObject;
-
-
 
         }
 

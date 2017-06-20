@@ -32,15 +32,6 @@ namespace K2.LaserficheServiceObject.Data
                 _currentSession = new Session();
 
                 _currentSession.LogIn(_currentRegistration);
-
-                //CrawlFolder(mySession, 1);
-
-                //GetDocumentByEntryID(mySession, 47);
-                //AddDocument(mySession);
-
-                //GetAllTemplates(mySession);
-                //GetAllDocuments(mySession);
-
             }
             catch (Exception ex)
             {
