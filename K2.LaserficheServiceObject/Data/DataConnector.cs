@@ -120,7 +120,7 @@ namespace K2.LaserficheServiceObject.DataConnectors
             //TODO: Add code to set up the service instance name, display name and description
             //NOTE: "Name" cannot contain spaces
             serviceBroker.Service.Name = "K2.LaserficheServiceBroker";
-            serviceBroker.Service.MetaData.DisplayName = "Houston Texans K2/Laserfiche ServiceBroker";
+            serviceBroker.Service.MetaData.DisplayName = "Laserfiche";
             serviceBroker.Service.MetaData.Description = "A service broker that provides various functional service objects that assist in the implementation of a K2 project.";
         }
         #endregion
@@ -163,17 +163,18 @@ namespace K2.LaserficheServiceObject.DataConnectors
                 sf.Add(serviceBroker.Service.ServiceObjects.Create(templateSvcObj));
             }
 
-
-            ////sf = null;
-            ////sf = new ServiceFolder("Workflows", new MetaData("Workflows", "Folder for Workflow Service Objects"));
-            ////serviceBroker.Service.ServiceFolders.Create(sf);
-            ////sf.Add(wfo);
+            sf = null;
+            sf = new ServiceFolder("Workflows", new MetaData("Workflows", "Folder for Workflow Service Objects"));
+            serviceBroker.Service.ServiceFolders.Create(sf);
+            //ServiceObject wfo = serviceBroker.Service.ServiceObjects.Create(GenerateWorkflowServiceObjectI());
+            sf.Add(serviceBroker.Service.ServiceObjects.Create(GenerateWorkflowServiceObjectI()));
+            sf.Add(serviceBroker.Service.ServiceObjects.Create(GenerateWorkflowServiceObjectII()));
 
             sf = null;
             sf = new ServiceFolder("Documents", new MetaData("Documents", "Folder for Document Service Objects"));
             serviceBroker.Service.ServiceFolders.Create(sf);
-            ServiceObject dso = serviceBroker.Service.ServiceObjects.Create(GenerateDocumentServiceObject());
-            sf.Add(dso);
+            //ServiceObject dso = serviceBroker.Service.ServiceObjects.Create(GenerateDocumentServiceObject());
+            sf.Add(serviceBroker.Service.ServiceObjects.Create(GenerateDocumentServiceObject()));
 
 
         }
@@ -426,8 +427,8 @@ namespace K2.LaserficheServiceObject.DataConnectors
             TypeMappings map = GetTypeMappings();
 
             //Note: ServiceObject Name should not contain space
-            documentSvcObject.Name = "Documents ServiceObject";
-            documentSvcObject.MetaData.DisplayName = "Documents ServiceObject";
+            documentSvcObject.Name = "Documents";
+            documentSvcObject.MetaData.DisplayName = "Documents";
             //IMPORTANT: You must activate the Service Object
             documentSvcObject.Active = true;
 
@@ -830,7 +831,7 @@ namespace K2.LaserficheServiceObject.DataConnectors
 
         //}
 
-        public ServiceObject GenerateWorkflowServiceObjects()
+        public ServiceObject GenerateWorkflowServiceObjectI()
         {
 
             //document service object
@@ -843,8 +844,8 @@ namespace K2.LaserficheServiceObject.DataConnectors
 
 
             //Note: ServiceObject Name should not contain space
-            documentSvcObject.Name = "Workflows1";
-            documentSvcObject.MetaData.DisplayName = "Workflows1";
+            documentSvcObject.Name = "Workflow1";
+            documentSvcObject.MetaData.DisplayName = "Workflow1";
             //IMPORTANT: You must activate the Service Object
             documentSvcObject.Active = true;
 
@@ -905,6 +906,80 @@ namespace K2.LaserficheServiceObject.DataConnectors
 
         }
 
+        public ServiceObject GenerateWorkflowServiceObjectII()
+        {
+
+            //document service object
+            ServiceObject documentSvcObject = new ServiceObject();
+
+            Property property = null;
+            Method method = null;
+            //load the Type Mappings as defined by the SetTypeMappings() method
+            TypeMappings map = GetTypeMappings();
+
+
+            //Note: ServiceObject Name should not contain space
+            documentSvcObject.Name = "Workflow2";
+            documentSvcObject.MetaData.DisplayName = "Workflow2";
+            //IMPORTANT: You must activate the Service Object
+            documentSvcObject.Active = true;
+
+            property = new Property();
+            property.Name = "WorkflowID";
+            property.MetaData.DisplayName = "WorkflowID";
+            //Property Type should be set to a .NET type
+            //based on the Property type, lookup and set SoType using the Property Mappings defined in the SetTypeMappings() method
+            property.SoType = map[typeof(System.Int32).ToString()];
+            //You can store the backend type here if you needed to, like this
+            //property.MetaData.ServiceProperties.Add("String", "TEXT"); 
+            documentSvcObject.Properties.Add(property);
+            property = null;
+
+            property = new Property();
+            property.Name = "WorkflowName";
+            property.MetaData.DisplayName = "WorkflowName";
+            //Property Type should be set to a .NET type
+            //based on the Property type, lookup and set SoType using the Property Mappings defined in the SetTypeMappings() method
+            property.SoType = map[typeof(System.String).ToString()];
+            //You can store the backend type here if you needed to, like this
+            //property.MetaData.ServiceProperties.Add("String", "TEXT"); 
+            documentSvcObject.Properties.Add(property);
+            property = null;
+
+            //Add a Method for the Service Object
+            method = new Method();
+            method.Name = "Start";
+            method.Type = MethodType.Execute;
+            method.MetaData.DisplayName = "Start";
+            //if the method type is Read, define a Key property using the first property for the ServiceObject
+            if (method.Type == MethodType.Execute)
+            {
+                foreach (Property prop in documentSvcObject.Properties)
+                {
+                    method.InputProperties.Add(prop);
+                }
+
+                //Include a Method Parameter, not returned as a property
+                MethodParameter parm = new MethodParameter("EntryID", typeof(System.Int32).ToString(), SoType.Number, null);
+                parm.IsRequired = false;
+                parm.MetaData.DisplayName = "EntryID";
+                parm.MetaData.Description = "EntryID";
+                method.MethodParameters.Create(parm);
+            }
+            //Set the method return Properties using all the available Properties of the ServiceObject
+            foreach (Property prop in documentSvcObject.Properties)
+            {
+                method.ReturnProperties.Add(prop);
+            }
+
+            //add the method to the Service Object
+            documentSvcObject.Methods.Add(method);
+
+
+            //return the collection of defined Service Objects
+            return documentSvcObject;
+
+        }
 
         #endregion
 
