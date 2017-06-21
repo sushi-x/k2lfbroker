@@ -254,7 +254,7 @@ namespace K2.LaserficheServiceObject.DataConnectors
                         ExecuteTemplateRuntimeReadMethod(inputProperties, requiredProperties, returnProperties, parameters, serviceObject);
                         break;
                     case MethodType.Create:
-                        ExecuteDocumentRuntimeCreateMethod(inputProperties, requiredProperties, returnProperties, parameters, serviceObject);
+                        ExecuteTemplateRuntimeCreateMethod(inputProperties, requiredProperties, returnProperties, parameters, serviceObject);
                         break;
                     case MethodType.Update:
                         ExecuteTemplateRuntimeUpdateMethod(inputProperties, requiredProperties, returnProperties, parameters, serviceObject);
@@ -632,13 +632,40 @@ namespace K2.LaserficheServiceObject.DataConnectors
                     //if the method type is List, add each of the available Properties as an available input property for the method
                     if (method.Type == MethodType.Update || method.Type == MethodType.Create)
                     {
+                        if (method.Type == MethodType.Create)
+                        {
+
+                            MethodParameter parm;
+                            parm = new MethodParameter("Path", typeof(System.String).ToString(), SoType.Text, null);
+                            parm.MetaData.DisplayName = "Path";
+                            parm.MetaData.Description = "Path parameter";
+                            method.MethodParameters.Create(parm);
+
+                            parm = new MethodParameter("DocumentName", typeof(System.String).ToString(), SoType.Text, null);
+                            parm.MetaData.DisplayName = "DocumentName";
+                            parm.MetaData.Description = "Document name parameter";
+                            method.MethodParameters.Create(parm);
+
+                            parm = new MethodParameter("TemplateName", typeof(System.String).ToString(), SoType.Text, null);
+                            parm.MetaData.DisplayName = "TemplateName";
+                            parm.MetaData.Description = "Template name parameter";
+                            method.MethodParameters.Create(parm);
+
+                            property = new Property();
+                            property.Name = "DocumentID";
+                            property.MetaData.DisplayName = "DocumentID";
+                            property.SoType = map[typeof(System.Int32).ToString()];
+                            obj.Properties.Add(property);
+                            property = null;
+
+                        }
+
                         foreach (Property prop in obj.Properties)
                         {
                             method.InputProperties.Add(prop);
                         }
                     }
 
-                    //Set the method return Properties using all the available Properties of the ServiceObject
                     foreach (Property prop in obj.Properties)
                     {
                         method.ReturnProperties.Add(prop);
@@ -861,8 +888,8 @@ namespace K2.LaserficheServiceObject.DataConnectors
             //Prepare the Service Object to receive returned data.
             serviceObject.Properties.InitResultTable();
 
-            LaserficheProvider lp = new LaserficheProvider(_requiredLaserficheServerValue, _requiredLaserficheRepositoryValue);
             DocumentInfo docInfo;
+            LaserficheProvider lp = new LaserficheProvider(_requiredLaserficheServerValue, _requiredLaserficheRepositoryValue);
             lp.Connect();
             //[0] will be the DocumentID
             docInfo = lp.DocumentGetByEntryID(Int32.Parse(parameters.ToObjectArray[0].ToString()));
@@ -928,6 +955,76 @@ namespace K2.LaserficheServiceObject.DataConnectors
             //Commit the changes to the Service Object. 
             serviceObject.Properties.BindPropertiesToResultTable();
         }
+
+        private void ExecuteTemplateRuntimeCreateMethod(Property[] inputProperties, RequiredProperties requiredProperties, Property[] returnProperties, MethodParameters parameters, ServiceObject serviceObject)
+        {
+
+            ////store the input properties in a temp location since they will be overwritten when BindPropertiesToResultTable() is called
+            //System.Collections.Specialized.NameValueCollection tempInputProperties = new System.Collections.Specialized.NameValueCollection();
+            //foreach (Property prop in inputProperties)
+            //{
+            //    if (prop.Value != null)
+            //    {
+            //        tempInputProperties.Add(prop.Name, prop.Value.ToString());
+            //    }
+            //}
+
+            ////If you needed to, you can access method parameters like this:
+            //foreach (MethodParameter parameter in parameters)
+            //{
+            //    string parameterVame = parameter.Name;
+            //    object parameterValue = parameter.Value;
+            //}
+
+            // Prepare the Service Object to receive returned data.
+            serviceObject.Properties.InitResultTable();
+
+            FieldValueCollection fv = new FieldValueCollection();
+            for (int i = 0; i < inputProperties.Length-1; i++)
+            {
+                //inputProperties.Length-1 since we dont want to do anything with the DocumentID
+
+                // massage the date value?
+                //https://answers.laserfiche.com/questions/89289/How-Do-You-Update-a-Date-Field-in-the-SDK
+                if (inputProperties[i].Name.ToUpper().Contains("DATE"))
+                {
+                    fv.Add(inputProperties[i].Name, System.DateTime.Parse(inputProperties[i].Value.ToString()));
+                }
+                else
+                    fv.Add(inputProperties[i].Name, inputProperties[i].Value);
+            }
+
+            LaserficheProvider lp = new LaserficheProvider(_requiredLaserficheServerValue, _requiredLaserficheRepositoryValue);
+            lp.Connect();
+            //parameters.ToObjectArray[0] will be path
+            //parameters.ToObjectArray[1] will be DocumentName
+            //parameters.ToObjectArray[2] will be TemplateName
+            DocumentInfo docInfo = lp.DocumentAddDocument(@parameters.ToObjectArray[0].ToString(),
+                parameters.ToObjectArray[1].ToString(),
+                parameters.ToObjectArray[2].ToString(),fv);
+            lp.Logout();
+
+            //matchup values in fieldValueCollection with serviceObject
+            for (int i = 0; i < returnProperties.Length; i++)
+            {
+                foreach (KeyValuePair<string, object> fieldValue in fv)
+                {
+                    if (serviceObject.Properties[i].Name == "DocumentID")
+                    {
+                        serviceObject.Properties[i].Value = docInfo.Id;
+                        break;
+                    }    
+                    if (serviceObject.Properties[i].Name == fieldValue.Key)
+                    {
+                        serviceObject.Properties[i].Value = (fieldValue.Value == null ? "" : fieldValue.Value);
+                        break;
+                    }
+                }
+            }
+            //Commit the changes to the Service Object. 
+            serviceObject.Properties.BindPropertiesToResultTable();
+        }
+
 
         private void ExecuteRuntimeReadMethod(Property[] inputProperties, RequiredProperties requiredProperties, Property[] returnProperties, MethodParameters parameters,  ServiceObject serviceObject)
         {

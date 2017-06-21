@@ -41,7 +41,8 @@ namespace K2.LaserficheServiceObject.Data
         }
         public void Logout()
         {
-            if (_currentSession!=null){
+            if (_currentSession != null)
+            {
                 if (_currentSession.LogInTime.Year.ToString() != "1")
                 {
                     _currentSession.LogOut();
@@ -54,52 +55,91 @@ namespace K2.LaserficheServiceObject.Data
 
         public DocumentInfo DocumentGetByEntryID(Int32 entryId)
         {
-            EntryInfo entryInfo = Entry.GetEntryInfo(entryId, _currentSession);
-            if (entryInfo.EntryType == EntryType.Shortcut)
-                entryInfo = Entry.GetEntryInfo(((ShortcutInfo)entryInfo).TargetId, _currentSession);
+            try
+            {
+                EntryInfo entryInfo = Entry.GetEntryInfo(entryId, _currentSession);
+                if (entryInfo.EntryType == EntryType.Shortcut)
+                    entryInfo = Entry.GetEntryInfo(((ShortcutInfo)entryInfo).TargetId, _currentSession);
 
-            // Now entry should be the DocumentInfo
-            if (entryInfo.EntryType == EntryType.Document)
-                return (DocumentInfo)entryInfo;
-            else
-                return null;
+                // Now entry should be the DocumentInfo
+                if (entryInfo.EntryType == EntryType.Document)
+                    return (DocumentInfo)entryInfo;
+                else
+                    return null;
+            }
+            catch (Exception ex)
+            {
+                this.Logout();
+                throw ex;
+            }
         }
 
         public DocumentInfo DocumentUpdateByEntryID(Int32 entryId, FieldValueCollection fv)
         {
-            EntryInfo entryInfo = Entry.GetEntryInfo(entryId, _currentSession);
-            if (entryInfo.EntryType == EntryType.Shortcut)
-                entryInfo = Entry.GetEntryInfo(((ShortcutInfo)entryInfo).TargetId, _currentSession);
-
-            // Now entry should be the DocumentInfo
-            if (entryInfo.EntryType == EntryType.Document)
+            try
             {
-                DocumentInfo docInfo = (DocumentInfo)entryInfo;
-                docInfo.SetFieldValues(fv);
-                docInfo.Save();
-                return docInfo;
-            }
-            else
-                return null;
+                EntryInfo entryInfo = Entry.GetEntryInfo(entryId, _currentSession);
+                if (entryInfo.EntryType == EntryType.Shortcut)
+                    entryInfo = Entry.GetEntryInfo(((ShortcutInfo)entryInfo).TargetId, _currentSession);
 
+                // Now entry should be the DocumentInfo
+                if (entryInfo.EntryType == EntryType.Document)
+                {
+                    DocumentInfo docInfo = (DocumentInfo)entryInfo;
+                    docInfo.SetFieldValues(fv);
+                    docInfo.Save();
+                    return docInfo;
+                }
+                else
+                    return null;
+            }
+            catch (Exception ex)
+            {
+                this.Logout();
+                throw ex;
+            }
         }
 
+
+        public DocumentInfo DocumentAddDocument(string folder, string documentName, string templateName, FieldValueCollection fv)
+        {
+            try
+            {
+                FolderInfo parentFolder = Folder.GetFolderInfo(folder, _currentSession);
+                DocumentInfo document = new DocumentInfo(_currentSession);
+                document.Create(parentFolder, documentName, EntryNameOption.None);
+                document.SetTemplate(templateName);
+
+                document.SetFieldValues(fv);
+                document.Save();
+                return document;
+            }
+            catch (Exception ex)
+            {
+                this.Logout();
+                throw ex;
+            }
+        }
 
         public List<TemplateInfo> TemplatesGetAll()
         {
-            List<TemplateInfo> templateList = new List<TemplateInfo>();
-            foreach (TemplateInfo templateInfo in Template.EnumAll(_currentSession))
+            try
             {
-                templateList.Add(templateInfo);
+                List<TemplateInfo> templateList = new List<TemplateInfo>();
+                foreach (TemplateInfo templateInfo in Template.EnumAll(_currentSession))
+                {
+                    templateList.Add(templateInfo);
+                }
+                return templateList;
             }
-            return templateList;
+            catch (Exception ex)
+            {
+                this.Logout();
+                throw ex;
+            }
 
         }
 
-
     }
-
-    
-
 
 }
