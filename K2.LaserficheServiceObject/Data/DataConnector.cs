@@ -868,11 +868,11 @@ namespace K2.LaserficheServiceObject.DataConnectors
             docInfo = lp.DocumentGetByEntryID(Int32.Parse(parameters.ToObjectArray[0].ToString()));
             //grab the field values prior to logging out
             //they appear to be lazy loaded; will be null
-            //you logout
+            //if you logout
             FieldValueCollection fv = docInfo.GetFieldValues();
             lp.Logout();
 
-            //matchup values in fieldValueCollection and serviceObject
+            //matchup values in fieldValueCollection with serviceObject
             for (int i = 0; i < returnProperties.Length; i++)
             {
                 foreach (KeyValuePair<string, object> fieldValue in fv)
@@ -896,10 +896,16 @@ namespace K2.LaserficheServiceObject.DataConnectors
             LaserficheProvider lp = new LaserficheProvider(_requiredLaserficheServerValue, _requiredLaserficheRepositoryValue);
             FieldValueCollection fv = new FieldValueCollection();
 
-            //parameters.ToObjectArray[0] will be the DocumentID
             for (int i = 0; i < inputProperties.Length; i++)
             {
-                fv.Add(inputProperties[i].Name, inputProperties[i].Value);
+                // massage the date value?
+                //https://answers.laserfiche.com/questions/89289/How-Do-You-Update-a-Date-Field-in-the-SDK
+                if (inputProperties[i].Name.ToUpper().Contains("DATE"))
+                {
+                    fv.Add(inputProperties[i].Name, System.DateTime.Parse(inputProperties[i].Value.ToString()));
+                }
+                else
+                    fv.Add(inputProperties[i].Name, inputProperties[i].Value);
             }
 
             lp.Connect();
@@ -907,9 +913,17 @@ namespace K2.LaserficheServiceObject.DataConnectors
             lp.DocumentUpdateByEntryID(Int32.Parse(parameters.ToObjectArray[0].ToString()), fv);
             lp.Logout();
 
+            //matchup values in fieldValueCollection with serviceObject
             for (int i = 0; i < returnProperties.Length; i++)
             {
-                serviceObject.Properties[i].Value = (inputProperties[i].Value == null ? "" : inputProperties[i].Value);
+                foreach (KeyValuePair<string, object> fieldValue in fv)
+                {
+                    if (serviceObject.Properties[i].Name == fieldValue.Key)
+                    {
+                        serviceObject.Properties[i].Value = (fieldValue.Value == null ? "" : fieldValue.Value);
+                        break;
+                    }
+                }
             }
             //Commit the changes to the Service Object. 
             serviceObject.Properties.BindPropertiesToResultTable();
