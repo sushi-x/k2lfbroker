@@ -19,7 +19,6 @@ namespace K2.LaserficheServiceObject.DataConnectors
     /// An implementation of IDataConnector responsible for interacting with an underlying system or technology. 
     /// The purpose of this class is to expose and represent the underlying data and services as Service Objects 
     /// which are, in turn, consumed by K2 SmartObjects
-    /// TODO: implement the Interface Methods with your own code which interacts with the underlying provider
     /// </summary>
     class DataConnector : IDataConnector
     {
@@ -63,7 +62,7 @@ namespace K2.LaserficheServiceObject.DataConnectors
         }
         #endregion
 
-        #region Interface Methods
+        #region IDataConnector Interface Methods
 
         #region void SetupConfiguration()
         /// <summary>
@@ -74,9 +73,6 @@ namespace K2.LaserficheServiceObject.DataConnectors
         /// </summary>
         public void SetupConfiguration()
         {
-            //TODO: Add the service instance configuration values here
-
-            //In this example, we are adding two configuration values, one required and one optional, and one with a default value 
             serviceBroker.Service.ServiceConfiguration.Add("Laserfiche Server", true, "TEXAN-APP26");
             serviceBroker.Service.ServiceConfiguration.Add("Laserfiche Workflow Server", true, "TEXAN-APP9");
             serviceBroker.Service.ServiceConfiguration.Add("Laserfiche Repository", true, "Laserfiche");
@@ -89,11 +85,6 @@ namespace K2.LaserficheServiceObject.DataConnectors
         /// </summary>
         public void GetConfiguration()
         {
-            //TODO: Add code to retrieve the service instance configuration values
-
-            //in this example, we are returning the two configuration values that were added by the SetupConfiguration() method
-            //and saving them to local private variables for re-use by other methods
-
             //the required configuration value will always be there
             _requiredLaserficheServerValue = serviceBroker.Service.ServiceConfiguration["Laserfiche Server"].ToString();
             _requiredLaserficheWorkflowServerValue = serviceBroker.Service.ServiceConfiguration["Laserfiche Workflow Server"].ToString();
@@ -117,7 +108,6 @@ namespace K2.LaserficheServiceObject.DataConnectors
         /// </summary>
         public void SetupService()
         {
-            //TODO: Add code to set up the service instance name, display name and description
             //NOTE: "Name" cannot contain spaces
             serviceBroker.Service.Name = "K2.LaserficheServiceBroker";
             serviceBroker.Service.MetaData.DisplayName = "Laserfiche";
@@ -163,17 +153,15 @@ namespace K2.LaserficheServiceObject.DataConnectors
                 sf.Add(serviceBroker.Service.ServiceObjects.Create(templateSvcObj));
             }
 
-            sf = null;
-            sf = new ServiceFolder("Workflows", new MetaData("Workflows", "Folder for Workflow Service Objects"));
-            serviceBroker.Service.ServiceFolders.Create(sf);
-            //ServiceObject wfo = serviceBroker.Service.ServiceObjects.Create(GenerateWorkflowServiceObjectI());
-            sf.Add(serviceBroker.Service.ServiceObjects.Create(GenerateWorkflowServiceObjectI()));
-            sf.Add(serviceBroker.Service.ServiceObjects.Create(GenerateWorkflowServiceObjectII()));
+            //sf = null;
+            //sf = new ServiceFolder("Workflows", new MetaData("Workflows", "Folder for Workflow Service Objects"));
+            //serviceBroker.Service.ServiceFolders.Create(sf);
+            //sf.Add(serviceBroker.Service.ServiceObjects.Create(GenerateWorkflowServiceObjectI()));
+            //sf.Add(serviceBroker.Service.ServiceObjects.Create(GenerateWorkflowServiceObjectII()));
 
             sf = null;
             sf = new ServiceFolder("Documents", new MetaData("Documents", "Folder for Document Service Objects"));
             serviceBroker.Service.ServiceFolders.Create(sf);
-            //ServiceObject dso = serviceBroker.Service.ServiceObjects.Create(GenerateDocumentServiceObject());
             sf.Add(serviceBroker.Service.ServiceObjects.Create(GenerateDocumentServiceObject()));
 
 
@@ -186,12 +174,7 @@ namespace K2.LaserficheServiceObject.DataConnectors
         /// </summary>
         public void SetTypeMappings()
         {
-            // Variable declaration.
             TypeMappings map = new TypeMappings();
-
-            //TODO: Define Service Type mappings. These mappings are used to "convert" the internal data types 
-            //of the Provider's properties to equivalent SmartObject types
-            //In the sample code below, we are defining some common type mappings, but yours will probably differ
             map.Add("System.Int16", SoType.Number);
             map.Add("System.Int32", SoType.Number);
             map.Add("System.Int64", SoType.Number);
@@ -298,7 +281,7 @@ namespace K2.LaserficheServiceObject.DataConnectors
 
         #endregion
 
-        #region Helper Methods (For demonstration purposes only)
+        #region Helper Methods
 
         #region ServiceObject[] GenerateServiceObjects()
         /// <summary>
@@ -674,177 +657,6 @@ namespace K2.LaserficheServiceObject.DataConnectors
             //return the collection of defined Service Objects
             return templateSvcObjects;
         }
-        //public ServiceObject GenerateTemplatesServiceObject()
-        //{
-
-        //    //document service object
-        //    ServiceObject documentSvcObject = new ServiceObject();
-
-        //    Property property = null;
-        //    Method method = null;
-        //    //load the Type Mappings as defined by the SetTypeMappings() method
-        //    TypeMappings map = GetTypeMappings();
-
-
-        //    //Note: ServiceObject Name should not contain space
-        //    documentSvcObject.Name = "Templates1";
-        //    documentSvcObject.MetaData.DisplayName = "Templates1";
-        //    //IMPORTANT: You must activate the Service Object
-        //    documentSvcObject.Active = true;
-
-        //    property = new Property();
-        //    property.Name = "DocumentID";
-        //    property.MetaData.DisplayName = "DocumentID";
-        //    //Property Type should be set to a .NET type
-        //    //based on the Property type, lookup and set SoType using the Property Mappings defined in the SetTypeMappings() method
-        //    property.SoType = map[typeof(System.Int32).ToString()];
-        //    //You can store the backend type here if you needed to, like this
-        //    //property.MetaData.ServiceProperties.Add("String", "TEXT"); 
-        //    documentSvcObject.Properties.Add(property);
-        //    property = null;
-
-        //    property = new Property();
-        //    property.Name = "DocumentName";
-        //    property.MetaData.DisplayName = "DocumentName";
-        //    //Property Type should be set to a .NET type
-        //    //based on the Property type, lookup and set SoType using the Property Mappings defined in the SetTypeMappings() method
-        //    property.SoType = map[typeof(System.String).ToString()];
-        //    //You can store the backend type here if you needed to, like this
-        //    //property.MetaData.ServiceProperties.Add("String", "TEXT"); 
-        //    documentSvcObject.Properties.Add(property);
-        //    property = null;
-
-        //    property = new Property();
-        //    property.Name = "NumberOfPages";
-        //    property.MetaData.DisplayName = "NumberOfPages";
-        //    //Property Type should be set to a .NET type
-        //    //based on the Property type, lookup and set SoType using the Property Mappings defined in the SetTypeMappings() method
-        //    property.SoType = map[typeof(System.Int32).ToString()];
-        //    //You can store the backend type here if you needed to, like this
-        //    //property.MetaData.ServiceProperties.Add("String", "TEXT"); 
-        //    documentSvcObject.Properties.Add(property);
-        //    property = null;
-
-        //    property = new Property();
-        //    property.Name = "Path";
-        //    property.MetaData.DisplayName = "Path";
-        //    //Property Type should be set to a .NET type
-        //    //based on the Property type, lookup and set SoType using the Property Mappings defined in the SetTypeMappings() method
-        //    property.SoType = map[typeof(System.String).ToString()];
-        //    //You can store the backend type here if you needed to, like this
-        //    //property.MetaData.ServiceProperties.Add("String", "TEXT"); 
-        //    documentSvcObject.Properties.Add(property);
-        //    property = null;
-
-        //    property = new Property();
-        //    property.Name = "TemplateName";
-        //    property.MetaData.DisplayName = "TemplateName";
-        //    //Property Type should be set to a .NET type
-        //    //based on the Property type, lookup and set SoType using the Property Mappings defined in the SetTypeMappings() method
-        //    property.SoType = map[typeof(System.String).ToString()];
-        //    //You can store the backend type here if you needed to, like this
-        //    //property.MetaData.ServiceProperties.Add("String", "TEXT"); 
-        //    documentSvcObject.Properties.Add(property);
-        //    property = null;
-
-
-        //    //Add a Method for the Service Object
-        //    method = new Method();
-        //    method.Name = "Read";
-        //    method.Type = MethodType.Read;
-        //    method.MetaData.DisplayName = "Read";
-        //    //if the method type is Read, define a Key property using the first property for the ServiceObject
-        //    if (method.Type == MethodType.Read)
-        //    {
-        //        // Set up key property as the first Property of the SmartObject
-        //        method.InputProperties.Add(documentSvcObject.Properties[0]);
-
-        //        // Mark the key property as required.
-        //        method.Validation.RequiredProperties.Add(documentSvcObject.Properties[0]);
-
-        //        ////Include a Method Parameter which is required, but not returned as a property
-        //        //MethodParameter parm = new MethodParameter("Parameter " + k.ToString(), typeof(System.String).ToString(), SoType.Text, null);
-        //        //parm.MetaData.DisplayName = "Parameter " + k.ToString() + " (Display Name)";
-        //        //parm.MetaData.Description = "Sample Parameter";
-        //        //method.MethodParameters.Create(parm);
-        //    }
-        //    //Set the method return Properties using all the available Properties of the ServiceObject
-        //    foreach (Property prop in documentSvcObject.Properties)
-        //    {
-        //        method.ReturnProperties.Add(prop);
-        //    }
-
-        //    //add the method to the Service Object
-        //    documentSvcObject.Methods.Add(method);
-
-        //    method = null;
-        //    method = new Method();
-        //    method.Name = "Write";
-        //    method.Type = MethodType.Update;
-        //    method.MetaData.DisplayName = "Write";
-        //    //if the method type is Read, define a Key property using the first property for the ServiceObject
-
-        //    // Set up key property as the first Property of the SmartObject
-        //    method.InputProperties.Add(documentSvcObject.Properties[0]);
-
-        //    // Mark the key property as required.
-        //    method.Validation.RequiredProperties.Add(documentSvcObject.Properties[0]);
-
-        //    ////Include a Method Parameter which is required, but not returned as a property
-        //    //MethodParameter parm = new MethodParameter("Parameter " + k.ToString(), typeof(System.String).ToString(), SoType.Text, null);
-        //    //parm.MetaData.DisplayName = "Parameter " + k.ToString() + " (Display Name)";
-        //    //parm.MetaData.Description = "Sample Parameter";
-        //    //method.MethodParameters.Create(parm);
-        //    //Set the method return Properties using all the available Properties of the ServiceObject
-        //    foreach (Property prop in documentSvcObject.Properties)
-        //    {
-        //        method.ReturnProperties.Add(prop);
-        //    }
-        //    //add the method to the Service Object
-        //    documentSvcObject.Methods.Add(method);
-
-
-        //    method = null;
-        //    method = new Method();
-        //    method.Name = "Insert";
-        //    method.Type = MethodType.Create;
-        //    method.MetaData.DisplayName = "Insert";
-        //    foreach (Property prop in documentSvcObject.Properties)
-        //    {
-        //        method.InputProperties.Add(prop);
-        //    }
-        //    //Set the method return Properties using all the available Properties of the ServiceObject
-        //    foreach (Property prop in documentSvcObject.Properties)
-        //    {
-        //        method.ReturnProperties.Add(prop);
-        //    }
-        //    //add the method to the Service Object
-        //    documentSvcObject.Methods.Add(method);
-
-
-        //    method = null;
-        //    method = new Method();
-        //    method.Name = "Search";
-        //    method.Type = MethodType.List;
-        //    method.MetaData.DisplayName = "Search";
-        //    foreach (Property prop in documentSvcObject.Properties)
-        //    {
-        //        method.InputProperties.Add(prop);
-        //    }
-        //    //Set the method return Properties using all the available Properties of the ServiceObject
-        //    foreach (Property prop in documentSvcObject.Properties)
-        //    {
-        //        method.ReturnProperties.Add(prop);
-        //    }
-        //    //add the method to the Service Object
-        //    documentSvcObject.Methods.Add(method);
-
-        //    //return the collection of defined Service Objects
-        //    return documentSvcObject;
-
-
-
-        //}
 
         public ServiceObject GenerateWorkflowServiceObjectI()
         {
@@ -1141,14 +953,6 @@ namespace K2.LaserficheServiceObject.DataConnectors
             serviceObject.Properties.BindPropertiesToResultTable();
         }
 
-        /// <summary>
-        /// This is a sample method to demonstrate a List operation at runtime
-        /// </summary>
-        /// <param name="inputProperties"></param>
-        /// <param name="requiredProperties"></param>
-        /// <param name="returnProperties"></param>
-        /// <param name="parameters"></param>
-        /// <param name="serviceObject"></param>
         private void ExecuteDocumentRuntimeCreateMethod(Property[] inputProperties, RequiredProperties requiredProperties, Property[] returnProperties, MethodParameters parameters, ServiceObject serviceObject)
         {
 
@@ -1201,6 +1005,7 @@ namespace K2.LaserficheServiceObject.DataConnectors
                 serviceObject.Properties.BindPropertiesToResultTable();
             }
         }
+
         private void ExecuteRuntimeListMethod(Property[] inputProperties, RequiredProperties requiredProperties, Property[] returnProperties, MethodParameters parameters, ServiceObject serviceObject)
         {
 
@@ -1253,7 +1058,6 @@ namespace K2.LaserficheServiceObject.DataConnectors
                 serviceObject.Properties.BindPropertiesToResultTable();
             }
         }
-
 
         /// <summary>
         /// private helper method used to generate a random string. used for sample purposes only.
