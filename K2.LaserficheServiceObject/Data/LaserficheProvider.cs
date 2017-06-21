@@ -52,7 +52,7 @@ namespace K2.LaserficheServiceObject.Data
             }
         }
 
-        public DocumentInfo GetDocumentByEntryID(Int32 entryId)
+        public DocumentInfo DocumentGetByEntryID(Int32 entryId)
         {
             EntryInfo entryInfo = Entry.GetEntryInfo(entryId, _currentSession);
             if (entryInfo.EntryType == EntryType.Shortcut)
@@ -65,7 +65,27 @@ namespace K2.LaserficheServiceObject.Data
                 return null;
         }
 
-        public List<TemplateInfo> GetAllTemplates()
+        public DocumentInfo DocumentUpdateByEntryID(Int32 entryId, FieldValueCollection fv)
+        {
+            EntryInfo entryInfo = Entry.GetEntryInfo(entryId, _currentSession);
+            if (entryInfo.EntryType == EntryType.Shortcut)
+                entryInfo = Entry.GetEntryInfo(((ShortcutInfo)entryInfo).TargetId, _currentSession);
+
+            // Now entry should be the DocumentInfo
+            if (entryInfo.EntryType == EntryType.Document)
+            {
+                DocumentInfo docInfo = (DocumentInfo)entryInfo;
+                docInfo.SetFieldValues(fv);
+                docInfo.Save();
+                return docInfo;
+            }
+            else
+                return null;
+
+        }
+
+
+        public List<TemplateInfo> TemplatesGetAll()
         {
             List<TemplateInfo> templateList = new List<TemplateInfo>();
             foreach (TemplateInfo templateInfo in Template.EnumAll(_currentSession))

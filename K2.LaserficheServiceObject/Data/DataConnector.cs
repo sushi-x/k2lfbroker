@@ -260,17 +260,29 @@ namespace K2.LaserficheServiceObject.DataConnectors
                     case MethodType.Read:
                         ExecuteDocumentRuntimeReadMethod(inputProperties, requiredProperties, returnProperties, parameters, serviceObject);
                         break;
-                    case MethodType.Create:
-                        ExecuteDocumentRuntimeCreateMethod(inputProperties, requiredProperties, returnProperties, parameters, serviceObject);
-                        break;
                     default:
                         throw new NotImplementedException("The helper for the specified method type (" + methodType.ToString() + ") has not been implemented");
                 }
             }
+            else
+                switch (methodType)
+                {
+                    case MethodType.Read:
+                        ExecuteTemplateRuntimeReadMethod(inputProperties, requiredProperties, returnProperties, parameters, serviceObject);
+                        break;
+                    case MethodType.Create:
+                        ExecuteDocumentRuntimeCreateMethod(inputProperties, requiredProperties, returnProperties, parameters, serviceObject);
+                        break;
+                    case MethodType.Update:
+                        ExecuteTemplateRuntimeUpdateMethod(inputProperties, requiredProperties, returnProperties, parameters, serviceObject);
+                        break;
+                    default:
+                        throw new NotImplementedException("The helper for the specified method type (" + methodType.ToString() + ") has not been implemented");
+                }
 
         }
         #endregion
- 
+
         #region void Dispose()
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
@@ -530,7 +542,7 @@ namespace K2.LaserficheServiceObject.DataConnectors
             LaserficheProvider lp = new LaserficheProvider(_requiredLaserficheServerValue, _requiredLaserficheRepositoryValue);
             List<TemplateInfo> templateInfoList;
             lp.Connect();
-            templateInfoList = lp.GetAllTemplates();
+            templateInfoList = lp.TemplatesGetAll();
             lp.Logout();
 
             //Generate Service Objects for all available templates 
@@ -606,21 +618,36 @@ namespace K2.LaserficheServiceObject.DataConnectors
                     //if the method type is Read, define a Key property using the first property for the ServiceObject
                     if (method.Type == MethodType.Read || method.Type == MethodType.Update)
                     {
-                        // Set up key property as the first Property of the SmartObject
-                        method.InputProperties.Add(obj.Properties[0]);
+                        //// Set up key property as the first Property of the SmartObject
+                        //method.InputProperties.Add(obj.Properties[0]);
 
-                        // Mark the key property as required.
-                        method.Validation.RequiredProperties.Add(obj.Properties[0]);
+                        //// Mark the key property as required.
+                        //method.Validation.RequiredProperties.Add(obj.Properties[0]);
 
-                        ////Include a Method Parameter which is required, but not returned as a property
+                        //Include a Method Parameter which is required, but not returned as a property
                         //MethodParameter parm = new MethodParameter("Parameter " + k.ToString(), typeof(System.String).ToString(), SoType.Text, null);
                         //parm.MetaData.DisplayName = "Parameter " + k.ToString() + " (Display Name)";
                         //parm.MetaData.Description = "Sample Parameter";
                         //method.MethodParameters.Create(parm);
+
+                        //Include a Method Parameter which is required, but not returned as a property
+                        MethodParameter parm = new MethodParameter("DocumentID", typeof(System.Int32).ToString(), SoType.Number, null);
+                        parm.MetaData.DisplayName = "DocumentID";
+                        parm.MetaData.Description = "DocumentID parameter";
+                        method.MethodParameters.Create(parm);
+
+
+                        ////Include a Method Parameter which is required, but not returned as a property
+                        //MetaData md = new MetaData(obj.MetaData.DisplayName, "TemplateName");
+                        //parm = new MethodParameter("TemplateName", typeof(System.String).ToString(), SoType.Text, md);
+                        //parm.MetaData.DisplayName = "TemplateName";
+                        //parm.MetaData.Description = "TemplateName parameter";
+                        //method.MethodParameters.Create(parm);
+
                     }
 
                     //if the method type is List, add each of the available Properties as an available input property for the method
-                    if (method.Type == MethodType.List || method.Type == MethodType.Create)
+                    if (method.Type == MethodType.Update || method.Type == MethodType.Create)
                     {
                         foreach (Property prop in obj.Properties)
                         {
@@ -987,10 +1014,9 @@ namespace K2.LaserficheServiceObject.DataConnectors
             LaserficheProvider lp = new LaserficheProvider(_requiredLaserficheServerValue, _requiredLaserficheRepositoryValue);
             DocumentInfo docInfo;
             lp.Connect();
-            docInfo = lp.GetDocumentByEntryID(Int32.Parse(inputProperties[0].Value.ToString()));
+            docInfo = lp.DocumentGetByEntryID(Int32.Parse(inputProperties[0].Value.ToString()));
             lp.Logout();
 
-            //For demonstration purposes, set the Service Object (record)'s properties with random values.
             for (int i = 0; i < returnProperties.Length; i++)
             {
 
@@ -1017,6 +1043,66 @@ namespace K2.LaserficheServiceObject.DataConnectors
             //Commit the changes to the Service Object. 
             serviceObject.Properties.BindPropertiesToResultTable();
         }
+
+        private void ExecuteTemplateRuntimeReadMethod(Property[] inputProperties, RequiredProperties requiredProperties, Property[] returnProperties, MethodParameters parameters, ServiceObject serviceObject)
+        {
+            //Prepare the Service Object to receive returned data.
+            serviceObject.Properties.InitResultTable();
+
+            LaserficheProvider lp = new LaserficheProvider(_requiredLaserficheServerValue, _requiredLaserficheRepositoryValue);
+            DocumentInfo docInfo;
+            lp.Connect();
+            //[0] will be the DocumentID
+            docInfo = lp.DocumentGetByEntryID(Int32.Parse(parameters.ToObjectArray[0].ToString()));
+            //grab the field values prior to logging out
+            //they appear to be lazy loaded; will be null
+            //you logout
+            FieldValueCollection fv = docInfo.GetFieldValues();
+            lp.Logout();
+
+            //matchup values in fieldValueCollection and serviceObject
+            for (int i = 0; i < returnProperties.Length; i++)
+            {
+                foreach (KeyValuePair<string, object> fieldValue in fv)
+                {
+                    if (serviceObject.Properties[i].Name== fieldValue.Key)
+                    {
+                        serviceObject.Properties[i].Value = (fieldValue.Value == null ? "" : fieldValue.Value);
+                        break;
+                    }
+                }
+            }
+            //Commit the changes to the Service Object. 
+            serviceObject.Properties.BindPropertiesToResultTable();
+        }
+
+        private void ExecuteTemplateRuntimeUpdateMethod(Property[] inputProperties, RequiredProperties requiredProperties, Property[] returnProperties, MethodParameters parameters, ServiceObject serviceObject)
+        {
+            //Prepare the Service Object to receive returned data.
+            serviceObject.Properties.InitResultTable();
+
+            LaserficheProvider lp = new LaserficheProvider(_requiredLaserficheServerValue, _requiredLaserficheRepositoryValue);
+            FieldValueCollection fv = new FieldValueCollection();
+
+            //parameters.ToObjectArray[0] will be the DocumentID
+            for (int i = 0; i < inputProperties.Length; i++)
+            {
+                fv.Add(inputProperties[i].Name, inputProperties[i].Value);
+            }
+
+            lp.Connect();
+            //parameters.ToObjectArray[0] will be the DocumentID
+            lp.DocumentUpdateByEntryID(Int32.Parse(parameters.ToObjectArray[0].ToString()), fv);
+            lp.Logout();
+
+            for (int i = 0; i < returnProperties.Length; i++)
+            {
+                serviceObject.Properties[i].Value = (inputProperties[i].Value == null ? "" : inputProperties[i].Value);
+            }
+            //Commit the changes to the Service Object. 
+            serviceObject.Properties.BindPropertiesToResultTable();
+        }
+
         private void ExecuteRuntimeReadMethod(Property[] inputProperties, RequiredProperties requiredProperties, Property[] returnProperties, MethodParameters parameters,  ServiceObject serviceObject)
         {
             //Prepare the Service Object to receive returned data.
