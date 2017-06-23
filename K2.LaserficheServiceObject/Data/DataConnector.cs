@@ -259,6 +259,9 @@ namespace K2.LaserficheServiceObject.DataConnectors
                     case MethodType.Update:
                         ExecuteTemplateRuntimeUpdateMethod(inputProperties, requiredProperties, returnProperties, parameters, serviceObject);
                         break;
+                    case MethodType.List:
+                        ExecuteTemplateRuntimeListMethod(inputProperties, requiredProperties, returnProperties, parameters, serviceObject);
+                        break;
                     default:
                         throw new NotImplementedException("The helper for the specified method type (" + methodType.ToString() + ") has not been implemented");
                 }
@@ -420,35 +423,40 @@ namespace K2.LaserficheServiceObject.DataConnectors
             property = new Property();
             property.Name = "DocumentID";
             property.MetaData.DisplayName = "DocumentID";
-            property.SoType = map[typeof(System.Int32).ToString()];
+            //property.SoType = map[typeof(System.Int32).ToString()];
+            property.SoType = SoType.Number;
             documentSvcObject.Properties.Add(property);
             property = null;
 
             property = new Property();
             property.Name = "DocumentName";
             property.MetaData.DisplayName = "DocumentName";
-            property.SoType = map[typeof(System.String).ToString()];
+            //property.SoType = map[typeof(System.String).ToString()];
+            property.SoType = SoType.Text;
             documentSvcObject.Properties.Add(property);
             property = null;
 
             property = new Property();
             property.Name = "NumberOfPages";
             property.MetaData.DisplayName = "NumberOfPages";
-            property.SoType = map[typeof(System.Int32).ToString()];
+            //property.SoType = map[typeof(System.Int32).ToString()];
+            property.SoType = SoType.Number;
             documentSvcObject.Properties.Add(property);
             property = null;
 
             property = new Property();
             property.Name = "Path";
             property.MetaData.DisplayName = "Path";
-            property.SoType = map[typeof(System.String).ToString()];
+            //property.SoType = map[typeof(System.String).ToString()];
+            property.SoType = SoType.Text;
             documentSvcObject.Properties.Add(property);
             property = null;
 
             property = new Property();
             property.Name = "TemplateName";
             property.MetaData.DisplayName = "TemplateName";
-            property.SoType = map[typeof(System.String).ToString()];
+            //property.SoType = map[typeof(System.String).ToString()];
+            property.SoType = SoType.Text;
             documentSvcObject.Properties.Add(property);
             property = null;
 
@@ -467,11 +475,6 @@ namespace K2.LaserficheServiceObject.DataConnectors
                 // Mark the key property as required.
                 method.Validation.RequiredProperties.Add(documentSvcObject.Properties[0]);
 
-                ////Include a Method Parameter which is required, but not returned as a property
-                //MethodParameter parm = new MethodParameter("Parameter " + k.ToString(), typeof(System.String).ToString(), SoType.Text, null);
-                //parm.MetaData.DisplayName = "Parameter " + k.ToString() + " (Display Name)";
-                //parm.MetaData.Description = "Sample Parameter";
-                //method.MethodParameters.Create(parm);
             }
             //Set the method return Properties using all the available Properties of the ServiceObject
             foreach (Property prop in documentSvcObject.Properties)
@@ -482,27 +485,6 @@ namespace K2.LaserficheServiceObject.DataConnectors
             //add the method to the Service Object
             documentSvcObject.Methods.Add(method);
 
-
-            ////method = null;
-            //method = new Method();
-            //method.Name = "Insert";
-            //method.Type = MethodType.Create;
-            //method.MetaData.DisplayName = "Insert";
-            ////if the method type is Read, define a Key property using the first property for the ServiceObject
-            //if (method.Type == MethodType.Update)
-            //{
-            //    foreach (Property prop in documentSvcObject.Properties)
-            //    {
-            //        method.InputProperties.Add(prop);
-            //    }
-            //}
-            ////Set the method return Properties using all the available Properties of the ServiceObject
-            //foreach (Property prop in documentSvcObject.Properties)
-            //{
-            //    method.ReturnProperties.Add(prop);
-            //}
-            ////add the method to the Service Object
-            //documentSvcObject.Methods.Add(method);
 
             //return the Service Object
             return documentSvcObject;
@@ -524,9 +506,9 @@ namespace K2.LaserficheServiceObject.DataConnectors
 
             LaserficheProvider lp = new LaserficheProvider(_requiredLaserficheServerValue, _requiredLaserficheRepositoryValue);
             List<TemplateInfo> templateInfoList;
+
             lp.Connect();
             templateInfoList = lp.TemplatesGetAll();
-            lp.Logout();
 
             //Generate Service Objects for all available templates 
             //this looping-approach is for sample purposes only, to demonstrate adding a variable number of ServiceObjects
@@ -544,22 +526,63 @@ namespace K2.LaserficheServiceObject.DataConnectors
                 //Add Properties for the Service object. 
                 for (int j = 0; j < templateInfoList[i].Fields.Length; j++)
                 {
+
+                    FieldInfo f = lp.TemplateGetFieldInfo(templateInfoList[i].Fields[j].Name);
+
                     property = new Property();
                     property.Name = templateInfoList[i].Fields[j].Name.Replace(" ", "_");
                     property.MetaData.DisplayName = templateInfoList[i].Fields[j].Name;
-                    switch (templateInfoList[i].Fields[j].FieldType)
+
+                    if (f.IsMultiValue == true)
+                        property.SoType = SoType.MultiValue;
+                    else
                     {
-                        case FieldType.String:
-                            property.SoType = map[typeof(System.String).ToString()];
-                            break;
-                        case FieldType.Number:
-                            property.SoType = map[typeof(System.Int32).ToString()];
-                            break;
-                        default:
-                            break;
+                        switch (f.FieldType)
+                        {
+                            case FieldType.Blob:
+                                property.SoType = SoType.Image;
+                                break;
+                            case FieldType.String:
+                                property.SoType = SoType.Text;
+                                break;
+                            case FieldType.List:
+                                property.SoType = SoType.Number;
+                                break;
+                            case FieldType.Number:
+                                property.SoType = SoType.Number;
+                                break;
+                            case FieldType.LongInteger:
+                                property.SoType = SoType.Number;
+                                break;
+                            case FieldType.ShortInteger:
+                                property.SoType = SoType.Number;
+                                break;
+                            case FieldType.Date:
+                                property.SoType = SoType.Date;
+                                break;
+                            case FieldType.DateTime:
+                                property.SoType = SoType.DateTime;
+                                break;
+                            case FieldType.Time:
+                                property.SoType = SoType.Time;
+                                break;
+
+                        }
                     }
-                    //You can store the backend type here if you needed to, like this
-                    //property.MetaData.ServiceProperties.Add("String", "TEXT"); 
+                    //switch (templateInfoList[i].Fields[j].FieldType)
+                    //{
+                    //    case FieldType.String:
+                    //        property.SoType = map[typeof(System.String).ToString()];
+                    //        break;
+                    //    case FieldType.Number:
+                    //        property.SoType = map[typeof(System.Int32).ToString()];
+                    //        break;
+                    //    default:
+                    //        break;
+                    //}
+
+                        //You can store the backend type here if you needed to, like this
+                        //property.MetaData.ServiceProperties.Add("String", "TEXT"); 
                     obj.Properties.Add(property);
                     property = null;
                 }
@@ -594,8 +617,6 @@ namespace K2.LaserficheServiceObject.DataConnectors
                             method.Name = "Search";
                             method.Type = MethodType.List;
                             method.MetaData.DisplayName = "Search";
-
-
                             break;
                     }
                     //if the method type is Read, define a Key property using the first property for the ServiceObject
@@ -630,7 +651,7 @@ namespace K2.LaserficheServiceObject.DataConnectors
                     }
 
                     //if the method type is List, add each of the available Properties as an available input property for the method
-                    if (method.Type == MethodType.Update || method.Type == MethodType.Create)
+                    if (method.Type == MethodType.Update || method.Type == MethodType.Create || method.Type == MethodType.List)
                     {
                         if (method.Type == MethodType.Create)
                         {
@@ -660,6 +681,22 @@ namespace K2.LaserficheServiceObject.DataConnectors
 
                         }
 
+                        if (method.Type == MethodType.List)
+                        {
+
+                            MethodParameter parm;
+                            parm = new MethodParameter("Path", typeof(System.String).ToString(), SoType.Text, null);
+                            parm.MetaData.DisplayName = "Path";
+                            parm.MetaData.Description = "Path parameter";
+                            method.MethodParameters.Create(parm);
+
+                            parm = new MethodParameter("TemplateName", typeof(System.String).ToString(), SoType.Text, null);
+                            parm.MetaData.DisplayName = "TemplateName";
+                            parm.MetaData.Description = "Template name parameter";
+                            method.MethodParameters.Create(parm);
+
+                        }
+
                         foreach (Property prop in obj.Properties)
                         {
                             method.InputProperties.Add(prop);
@@ -680,6 +717,11 @@ namespace K2.LaserficheServiceObject.DataConnectors
                 templateSvcObjects.Add(obj);
                 obj = null;
             }
+
+            //can not logout until after
+            //all lp.TemplateGetFieldInfo() calls 
+            //are complete
+            lp.Logout();
 
             //return the collection of defined Service Objects
             return templateSvcObjects;
@@ -904,11 +946,25 @@ namespace K2.LaserficheServiceObject.DataConnectors
             {
                 foreach (KeyValuePair<string, object> fieldValue in fv)
                 {
-                    if (serviceObject.Properties[i].Name== fieldValue.Key)
+
+                    if (serviceObject.Properties[i].Name == fieldValue.Key)
                     {
-                        serviceObject.Properties[i].Value = (fieldValue.Value == null ? "" : fieldValue.Value);
+                        if (fieldValue.Value is Array)
+                        {
+                            string theValues = string.Empty;
+                            foreach (object o in (Array)fieldValue.Value)
+                            {
+                                if (theValues.Length > 0)
+                                    theValues += ", ";
+                                theValues += o.ToString();
+                            }
+                            serviceObject.Properties[i].Value = theValues;
+                        }
+                        else
+                            serviceObject.Properties[i].Value = (fieldValue.Value == null ? "" : fieldValue.Value);
                         break;
                     }
+
                 }
             }
             //Commit the changes to the Service Object. 
@@ -923,16 +979,34 @@ namespace K2.LaserficheServiceObject.DataConnectors
             LaserficheProvider lp = new LaserficheProvider(_requiredLaserficheServerValue, _requiredLaserficheRepositoryValue);
             FieldValueCollection fv = new FieldValueCollection();
 
-            for (int i = 0; i < inputProperties.Length; i++)
+            for (int i = 0; i < inputProperties.Length - 1; i++)
             {
-                // massage the date value?
-                //https://answers.laserfiche.com/questions/89289/How-Do-You-Update-a-Date-Field-in-the-SDK
-                if (inputProperties[i].Name.ToUpper().Contains("DATE"))
+                //inputProperties.Length-1 since we dont want to do anything with the DocumentID
+
+                if (inputProperties[i].Value != null)
                 {
-                    fv.Add(inputProperties[i].Name, System.DateTime.Parse(inputProperties[i].Value.ToString()));
+                    switch (inputProperties[i].SoType)
+                    {
+                        case SoType.MultiValue:
+                            string values = inputProperties[i].Value.ToString();
+                            string[] items = values.Split(',');
+                            fv.Add(inputProperties[i].Name, items);
+                            break;
+                        case SoType.Date:
+                            fv.Add(inputProperties[i].Name, System.DateTime.Parse(inputProperties[i].Value.ToString()));
+                            break;
+                        case SoType.DateTime:
+                            fv.Add(inputProperties[i].Name, System.DateTime.Parse(inputProperties[i].Value.ToString()));
+                            break;
+                        case SoType.Time:
+                            fv.Add(inputProperties[i].Name, System.DateTime.Parse(inputProperties[i].Value.ToString()).ToString("HH:mm"));
+                            break;
+                        default:
+                            fv.Add(inputProperties[i].Name, inputProperties[i].Value);
+                            break;
+                    }
                 }
-                else
-                    fv.Add(inputProperties[i].Name, inputProperties[i].Value);
+
             }
 
             lp.Connect();
@@ -947,6 +1021,23 @@ namespace K2.LaserficheServiceObject.DataConnectors
                 {
                     if (serviceObject.Properties[i].Name == fieldValue.Key)
                     {
+                        if (fieldValue.Value is Array)
+                        {
+                            string theValues = string.Empty;
+                            foreach (object o in (Array)fieldValue.Value)
+                            {
+                                if (theValues.Length > 0)
+                                    theValues += ", ";
+                                theValues += o.ToString();
+                            }
+                            serviceObject.Properties[i].Value = theValues;
+                        }
+                        else
+                            serviceObject.Properties[i].Value = (fieldValue.Value == null ? "" : fieldValue.Value);
+                        break;
+                    }
+                    if (serviceObject.Properties[i].Name == fieldValue.Key)
+                    {
                         serviceObject.Properties[i].Value = (fieldValue.Value == null ? "" : fieldValue.Value);
                         break;
                     }
@@ -957,6 +1048,86 @@ namespace K2.LaserficheServiceObject.DataConnectors
         }
 
         private void ExecuteTemplateRuntimeCreateMethod(Property[] inputProperties, RequiredProperties requiredProperties, Property[] returnProperties, MethodParameters parameters, ServiceObject serviceObject)
+        {
+            // Prepare the Service Object to receive returned data.
+            serviceObject.Properties.InitResultTable();
+
+            FieldValueCollection fv = new FieldValueCollection();
+            for (int i = 0; i < inputProperties.Length-1; i++)
+            {
+                //inputProperties.Length-1 since we dont want to do anything with the DocumentID
+
+                if (inputProperties[i].Value != null)
+                { 
+                    switch (inputProperties[i].SoType)
+                    {
+                        case SoType.MultiValue:
+                            string values = inputProperties[i].Value.ToString();
+                            string[] items = values.Split(',');
+                            fv.Add(inputProperties[i].Name, items);
+                            break;
+                        case SoType.Date:
+                            fv.Add(inputProperties[i].Name, System.DateTime.Parse(inputProperties[i].Value.ToString()));
+                            break;
+                        case SoType.DateTime:
+                            fv.Add(inputProperties[i].Name, System.DateTime.Parse(inputProperties[i].Value.ToString()));
+                            break;
+                        case SoType.Time:
+                            fv.Add(inputProperties[i].Name, System.DateTime.Parse(inputProperties[i].Value.ToString()).ToString("HH:mm"));
+                            break;
+                        default:
+                            fv.Add(inputProperties[i].Name, inputProperties[i].Value);
+                            break;
+                    }
+                }
+
+            }
+
+            LaserficheProvider lp = new LaserficheProvider(_requiredLaserficheServerValue, _requiredLaserficheRepositoryValue);
+            lp.Connect();
+            //parameters.ToObjectArray[0] will be path
+            //parameters.ToObjectArray[1] will be DocumentName
+            //parameters.ToObjectArray[2] will be TemplateName
+            DocumentInfo docInfo = lp.DocumentAddDocument(@parameters.ToObjectArray[0].ToString(),
+                parameters.ToObjectArray[1].ToString(),
+                parameters.ToObjectArray[2].ToString(),fv);
+            lp.Logout();
+
+            //matchup values in fieldValueCollection with serviceObject
+            for (int i = 0; i < returnProperties.Length; i++)
+            {
+                foreach (KeyValuePair<string, object> fieldValue in fv)
+                {
+                    if (serviceObject.Properties[i].Name == "DocumentID")
+                    {
+                        serviceObject.Properties[i].Value = docInfo.Id;
+                        break;
+                    }
+                    if (serviceObject.Properties[i].Name == fieldValue.Key)
+                    {
+                        if (fieldValue.Value is Array)
+                        {
+                            string theValues = string.Empty;
+                            foreach (object o in (Array)fieldValue.Value)
+                            {
+                                if (theValues.Length > 0)
+                                    theValues += ", ";
+                                theValues += o.ToString();
+                            }
+                            serviceObject.Properties[i].Value = theValues;
+                        }
+                        else
+                            serviceObject.Properties[i].Value = (fieldValue.Value == null ? "" : fieldValue.Value);
+                        break;
+                    }
+
+                }
+            }
+            //Commit the changes to the Service Object. 
+            serviceObject.Properties.BindPropertiesToResultTable();
+        }
+
+        private void ExecuteTemplateRuntimeListMethod(Property[] inputProperties, RequiredProperties requiredProperties, Property[] returnProperties, MethodParameters parameters, ServiceObject serviceObject)
         {
 
             ////store the input properties in a temp location since they will be overwritten when BindPropertiesToResultTable() is called
@@ -980,51 +1151,70 @@ namespace K2.LaserficheServiceObject.DataConnectors
             serviceObject.Properties.InitResultTable();
 
             FieldValueCollection fv = new FieldValueCollection();
-            for (int i = 0; i < inputProperties.Length-1; i++)
+            for (int i = 0; i < inputProperties.Length - 1; i++)
             {
                 //inputProperties.Length-1 since we dont want to do anything with the DocumentID
 
                 // massage the date value?
                 //https://answers.laserfiche.com/questions/89289/How-Do-You-Update-a-Date-Field-in-the-SDK
-                if (inputProperties[i].Name.ToUpper().Contains("DATE"))
+                if (inputProperties[i].Value != null)
                 {
-                    fv.Add(inputProperties[i].Name, System.DateTime.Parse(inputProperties[i].Value.ToString()));
+                    if (inputProperties[i].Name.ToUpper().Contains("DATE"))
+                    {
+                        fv.Add(inputProperties[i].Name, System.DateTime.Parse(inputProperties[i].Value.ToString()));
+                    }
+                    else
+                        fv.Add(inputProperties[i].Name, inputProperties[i].Value);
                 }
-                else
-                    fv.Add(inputProperties[i].Name, inputProperties[i].Value);
             }
 
             LaserficheProvider lp = new LaserficheProvider(_requiredLaserficheServerValue, _requiredLaserficheRepositoryValue);
             lp.Connect();
             //parameters.ToObjectArray[0] will be path
-            //parameters.ToObjectArray[1] will be DocumentName
-            //parameters.ToObjectArray[2] will be TemplateName
-            DocumentInfo docInfo = lp.DocumentAddDocument(@parameters.ToObjectArray[0].ToString(),
-                parameters.ToObjectArray[1].ToString(),
-                parameters.ToObjectArray[2].ToString(),fv);
-            lp.Logout();
+            //parameters.ToObjectArray[1] will be TemplateName
+            List<DocumentInfo> docInfoList = new List<DocumentInfo>(); 
+            docInfoList = lp.DocumentSearchByTemplate(@parameters.ToObjectArray[0].ToString(),
+                            parameters.ToObjectArray[1].ToString(), fv);
 
-            //matchup values in fieldValueCollection with serviceObject
-            for (int i = 0; i < returnProperties.Length; i++)
+            foreach (DocumentInfo docInfo in docInfoList)
             {
-                foreach (KeyValuePair<string, object> fieldValue in fv)
+                ////matchup values in fieldValueCollection with serviceObject
+                for (int i = 0; i < returnProperties.Length; i++)
                 {
-                    if (serviceObject.Properties[i].Name == "DocumentID")
+                    fv = docInfo.GetFieldValues();
+                    foreach (KeyValuePair<string, object> fieldValue in fv)
                     {
-                        serviceObject.Properties[i].Value = docInfo.Id;
-                        break;
-                    }    
-                    if (serviceObject.Properties[i].Name == fieldValue.Key)
-                    {
-                        serviceObject.Properties[i].Value = (fieldValue.Value == null ? "" : fieldValue.Value);
-                        break;
+                        if (serviceObject.Properties[i].Name == "DocumentID")
+                        {
+                            serviceObject.Properties[i].Value = docInfo.Id;
+                            break;
+                        }
+                        if (serviceObject.Properties[i].Name == fieldValue.Key)
+                        {
+                            if (fieldValue.Value is Array)
+                            {
+                                string theValues = string.Empty;
+                                foreach (object o in (Array)fieldValue.Value)
+                                {
+                                    if (theValues.Length > 0)
+                                        theValues += ", ";
+                                    theValues += o.ToString();
+                                }
+                                serviceObject.Properties[i].Value = theValues;
+                            }
+                            else
+                                serviceObject.Properties[i].Value = (fieldValue.Value == null ? "" : fieldValue.Value);
+                            break;
+                        }
                     }
                 }
+                //Commit the changes to the Service Object. 
+                serviceObject.Properties.BindPropertiesToResultTable();
             }
-            //Commit the changes to the Service Object. 
-            serviceObject.Properties.BindPropertiesToResultTable();
-        }
+        
+            lp.Logout();
 
+        }
 
         private void ExecuteRuntimeReadMethod(Property[] inputProperties, RequiredProperties requiredProperties, Property[] returnProperties, MethodParameters parameters,  ServiceObject serviceObject)
         {

@@ -53,6 +53,58 @@ namespace K2.LaserficheServiceObject.Data
             }
         }
 
+
+        public List<DocumentInfo> DocumentSearchByTemplate(string folderName, string templateName, FieldValueCollection fv)
+        {
+            try
+            {
+                List<DocumentInfo> documentList = new List<DocumentInfo>();
+                string searchFolder = String.Format("{{LF:Lookin=\"{0}\"}}", folderName);
+                string searchParameters = string.Empty;
+                string searchFields = string.Empty;
+
+                foreach (KeyValuePair<string, object> kvPair in fv)
+                {
+                    string tempSearch = string.Format(" & {{[{0}]:[{1}]=\"{2}\"}}", templateName, kvPair.Key.ToString(), kvPair.Value.ToString());
+                    searchFields += tempSearch;
+                }
+
+                searchParameters = searchFolder + searchFields;
+
+                Search lfSearch = new Search(_currentSession, searchParameters);
+                SearchListingSettings settings = new SearchListingSettings();
+                settings.AddColumn(SystemColumn.Id);
+
+                lfSearch.Run();
+
+                SearchResultListing searchResults = lfSearch.GetResultListing(settings);
+
+                foreach (EntryListingRow item in searchResults)
+                {
+                    Int32 docId = (Int32)item[SystemColumn.Id];
+
+                    EntryInfo entryInfo = Entry.GetEntryInfo(docId, _currentSession);
+                    if (entryInfo.EntryType == EntryType.Shortcut)
+                        entryInfo = Entry.GetEntryInfo(((ShortcutInfo)entryInfo).TargetId, _currentSession);
+
+                    // Now entry should be the DocumentInfo
+                    if (entryInfo.EntryType == EntryType.Document)
+                    {
+                        documentList.Add((DocumentInfo)entryInfo);
+
+                    }
+
+                }
+                return documentList;
+            }
+            catch (Exception ex)
+            {
+                this.Logout();
+                throw ex;
+            }
+
+        }
+
         public DocumentInfo DocumentGetByEntryID(Int32 entryId)
         {
             try
@@ -86,7 +138,17 @@ namespace K2.LaserficheServiceObject.Data
                 if (entryInfo.EntryType == EntryType.Document)
                 {
                     DocumentInfo docInfo = (DocumentInfo)entryInfo;
-                    docInfo.SetFieldValues(fv);
+
+                    // update only values that have been provided
+                    // in fv
+                    FieldValueCollection docFieldValues = docInfo.GetFieldValues();
+                    foreach (KeyValuePair<string, object> kvPair in fv)
+                    {
+                        docFieldValues.Remove(kvPair.Key.ToString());
+                        docFieldValues.Add(kvPair.Key.ToString(),kvPair.Value);
+                    }
+
+                    docInfo.SetFieldValues(docFieldValues);
                     docInfo.Save();
                     return docInfo;
                 }
@@ -105,6 +167,12 @@ namespace K2.LaserficheServiceObject.Data
         {
             try
             {
+
+                foreach (KeyValuePair<string, object> kvPair in fv)
+                {
+                    Console.WriteLine(kvPair.Key.ToString(), kvPair.Value.ToString());
+                }
+
                 FolderInfo parentFolder = Folder.GetFolderInfo(folder, _currentSession);
                 DocumentInfo document = new DocumentInfo(_currentSession);
                 document.Create(parentFolder, documentName, EntryNameOption.None);
@@ -137,7 +205,11 @@ namespace K2.LaserficheServiceObject.Data
                 this.Logout();
                 throw ex;
             }
+        }
 
+        public FieldInfo TemplateGetFieldInfo(string fieldName)
+        {
+            return Field.GetInfo(fieldName, _currentSession);
         }
 
     }
