@@ -529,7 +529,7 @@ namespace K2.LaserficheServiceObject.DataConnectors
 
                     FieldInfo f = lp.TemplateGetFieldInfo(templateInfoList[i].Fields[j].Name);
 
-                    property = new Property();
+                    property = new Property();  
                     property.Name = templateInfoList[i].Fields[j].Name.Replace(" ", "_");
                     property.MetaData.DisplayName = templateInfoList[i].Fields[j].Name;
 
@@ -540,7 +540,7 @@ namespace K2.LaserficheServiceObject.DataConnectors
                         switch (f.FieldType)
                         {
                             case FieldType.Blob:
-                                property.SoType = SoType.Image;
+                                property.SoType = SoType.File;
                                 break;
                             case FieldType.String:
                                 property.SoType = SoType.Text;
@@ -667,10 +667,10 @@ namespace K2.LaserficheServiceObject.DataConnectors
                             parm.MetaData.Description = "Document name parameter";
                             method.MethodParameters.Create(parm);
 
-                            parm = new MethodParameter("TemplateName", typeof(System.String).ToString(), SoType.Text, null);
-                            parm.MetaData.DisplayName = "TemplateName";
-                            parm.MetaData.Description = "Template name parameter";
-                            method.MethodParameters.Create(parm);
+                            //parm = new MethodParameter("TemplateName", typeof(System.String).ToString(), SoType.Text, null);
+                            //parm.MetaData.DisplayName = "TemplateName";
+                            //parm.MetaData.Description = "Template name parameter";
+                            //method.MethodParameters.Create(parm);
 
                             property = new Property();
                             property.Name = "DocumentID";
@@ -690,10 +690,10 @@ namespace K2.LaserficheServiceObject.DataConnectors
                             parm.MetaData.Description = "Path parameter";
                             method.MethodParameters.Create(parm);
 
-                            parm = new MethodParameter("TemplateName", typeof(System.String).ToString(), SoType.Text, null);
-                            parm.MetaData.DisplayName = "TemplateName";
-                            parm.MetaData.Description = "Template name parameter";
-                            method.MethodParameters.Create(parm);
+                            //parm = new MethodParameter("TemplateName", typeof(System.String).ToString(), SoType.Text, null);
+                            //parm.MetaData.DisplayName = "TemplateName";
+                            //parm.MetaData.Description = "Template name parameter";
+                            //method.MethodParameters.Create(parm);
 
                         }
 
@@ -947,7 +947,12 @@ namespace K2.LaserficheServiceObject.DataConnectors
                 foreach (KeyValuePair<string, object> fieldValue in fv)
                 {
 
-                    if (serviceObject.Properties[i].Name == fieldValue.Key)
+                    //property names can not have spaces, so they are replaced
+                    //with "_" when the service object is created
+                    string thePropertyName = serviceObject.Properties[i].Name.Replace("_", " ");
+
+                    //if (serviceObject.Properties[i].Name == fieldValue.Key)
+                    if (thePropertyName == fieldValue.Key)
                     {
                         if (fieldValue.Value is Array)
                         {
@@ -985,24 +990,33 @@ namespace K2.LaserficheServiceObject.DataConnectors
 
                 if (inputProperties[i].Value != null)
                 {
+                    //property names can not have spaces, so they are replaced
+                    //with "_" when the service object is created
+                    string thePropertyName = inputProperties[i].Name.Replace("_", " ");
+
                     switch (inputProperties[i].SoType)
                     {
                         case SoType.MultiValue:
                             string values = inputProperties[i].Value.ToString();
                             string[] items = values.Split(',');
-                            fv.Add(inputProperties[i].Name, items);
+                            fv.Add(thePropertyName, items);
+                            //fv.Add(inputProperties[i].Name, items);
                             break;
                         case SoType.Date:
-                            fv.Add(inputProperties[i].Name, System.DateTime.Parse(inputProperties[i].Value.ToString()));
+                            fv.Add(thePropertyName, System.DateTime.Parse(inputProperties[i].Value.ToString()));
+                            //fv.Add(inputProperties[i].Name, System.DateTime.Parse(inputProperties[i].Value.ToString()));
                             break;
                         case SoType.DateTime:
-                            fv.Add(inputProperties[i].Name, System.DateTime.Parse(inputProperties[i].Value.ToString()));
+                            fv.Add(thePropertyName, System.DateTime.Parse(inputProperties[i].Value.ToString()));
+                            //fv.Add(inputProperties[i].Name, System.DateTime.Parse(inputProperties[i].Value.ToString()));
                             break;
                         case SoType.Time:
-                            fv.Add(inputProperties[i].Name, System.DateTime.Parse(inputProperties[i].Value.ToString()).ToString("HH:mm"));
+                            fv.Add(thePropertyName, System.DateTime.Parse(inputProperties[i].Value.ToString()).ToString("HH:mm"));
+                            //fv.Add(inputProperties[i].Name, System.DateTime.Parse(inputProperties[i].Value.ToString()).ToString("HH:mm"));
                             break;
                         default:
-                            fv.Add(inputProperties[i].Name, inputProperties[i].Value);
+                            fv.Add(thePropertyName, inputProperties[i].Value);
+                            //fv.Add(inputProperties[i].Name, inputProperties[i].Value);
                             break;
                     }
                 }
@@ -1013,6 +1027,11 @@ namespace K2.LaserficheServiceObject.DataConnectors
             //parameters.ToObjectArray[0] will be the DocumentID
             lp.DocumentUpdateByEntryID(Int32.Parse(parameters.ToObjectArray[0].ToString()), fv);
             lp.Logout();
+
+            foreach (KeyValuePair<string, object> fieldValue in fv)
+            {
+                fieldValue.Key.Replace(" ", "_");
+            }
 
             //matchup values in fieldValueCollection with serviceObject
             for (int i = 0; i < returnProperties.Length; i++)
@@ -1058,25 +1077,35 @@ namespace K2.LaserficheServiceObject.DataConnectors
                 //inputProperties.Length-1 since we dont want to do anything with the DocumentID
 
                 if (inputProperties[i].Value != null)
-                { 
+                {
+            
+                    //property names can not have spaces, so they are replaced
+                    //with "_" when the service object is created
+                    string thePropertyName = inputProperties[i].Name.Replace("_", " ");
+
                     switch (inputProperties[i].SoType)
                     {
                         case SoType.MultiValue:
                             string values = inputProperties[i].Value.ToString();
                             string[] items = values.Split(',');
-                            fv.Add(inputProperties[i].Name, items);
+                            fv.Add(thePropertyName, items);
+                            //fv.Add(inputProperties[i].Name, items);
                             break;
                         case SoType.Date:
-                            fv.Add(inputProperties[i].Name, System.DateTime.Parse(inputProperties[i].Value.ToString()));
+                            fv.Add(thePropertyName, System.DateTime.Parse(inputProperties[i].Value.ToString()));
+                            //fv.Add(inputProperties[i].Name, System.DateTime.Parse(inputProperties[i].Value.ToString()));
                             break;
                         case SoType.DateTime:
-                            fv.Add(inputProperties[i].Name, System.DateTime.Parse(inputProperties[i].Value.ToString()));
+                            fv.Add(thePropertyName, System.DateTime.Parse(inputProperties[i].Value.ToString()));
+                            //fv.Add(inputProperties[i].Name, System.DateTime.Parse(inputProperties[i].Value.ToString()));
                             break;
                         case SoType.Time:
-                            fv.Add(inputProperties[i].Name, System.DateTime.Parse(inputProperties[i].Value.ToString()).ToString("HH:mm"));
+                            fv.Add(thePropertyName, System.DateTime.Parse(inputProperties[i].Value.ToString()).ToString("HH:mm"));
+                            //fv.Add(inputProperties[i].Name, System.DateTime.Parse(inputProperties[i].Value.ToString()).ToString("HH:mm"));
                             break;
                         default:
-                            fv.Add(inputProperties[i].Name, inputProperties[i].Value);
+                            fv.Add(thePropertyName, inputProperties[i].Value);
+                            //fv.Add(inputProperties[i].Name, inputProperties[i].Value);
                             break;
                     }
                 }
@@ -1087,11 +1116,19 @@ namespace K2.LaserficheServiceObject.DataConnectors
             lp.Connect();
             //parameters.ToObjectArray[0] will be path
             //parameters.ToObjectArray[1] will be DocumentName
-            //parameters.ToObjectArray[2] will be TemplateName
+            //serviceObject.MetaData.DisplayName will be TemplateName
             DocumentInfo docInfo = lp.DocumentAddDocument(@parameters.ToObjectArray[0].ToString(),
                 parameters.ToObjectArray[1].ToString(),
-                parameters.ToObjectArray[2].ToString(),fv);
+                serviceObject.MetaData.DisplayName, fv);
+
             lp.Logout();
+
+
+            foreach (KeyValuePair<string, object> fieldValue in fv)
+            {
+                fieldValue.Key.Replace(" ", "_");
+            }
+
 
             //matchup values in fieldValueCollection with serviceObject
             for (int i = 0; i < returnProperties.Length; i++)
@@ -1159,22 +1196,28 @@ namespace K2.LaserficheServiceObject.DataConnectors
                 //https://answers.laserfiche.com/questions/89289/How-Do-You-Update-a-Date-Field-in-the-SDK
                 if (inputProperties[i].Value != null)
                 {
-                    if (inputProperties[i].Name.ToUpper().Contains("DATE"))
-                    {
-                        fv.Add(inputProperties[i].Name, System.DateTime.Parse(inputProperties[i].Value.ToString()));
-                    }
-                    else
-                        fv.Add(inputProperties[i].Name, inputProperties[i].Value);
+
+                    //property names can not have spaces, so they are replaced
+                    //with "_" when the service object is created
+                    string thePropertyName = inputProperties[i].Name.Replace("_", " ");
+                    fv.Add(thePropertyName, inputProperties[i].Value);
+                    //fv.Add(inputProperties[i].Name, inputProperties[i].Value);
                 }
             }
 
             LaserficheProvider lp = new LaserficheProvider(_requiredLaserficheServerValue, _requiredLaserficheRepositoryValue);
             lp.Connect();
             //parameters.ToObjectArray[0] will be path
-            //parameters.ToObjectArray[1] will be TemplateName
+            //serviceObject.MetaData.DisplayName will be TemplateName
             List<DocumentInfo> docInfoList = new List<DocumentInfo>(); 
             docInfoList = lp.DocumentSearchByTemplate(@parameters.ToObjectArray[0].ToString(),
-                            parameters.ToObjectArray[1].ToString(), fv);
+                            serviceObject.MetaData.DisplayName, fv);
+
+
+            foreach (KeyValuePair<string, object> fieldValue in fv)
+            {
+                fieldValue.Key.Replace(" ", "_");
+            }
 
             foreach (DocumentInfo docInfo in docInfoList)
             {
