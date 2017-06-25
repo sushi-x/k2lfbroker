@@ -546,7 +546,7 @@ namespace K2.LaserficheServiceObject.DataConnectors
                                 property.SoType = SoType.Text;
                                 break;
                             case FieldType.List:
-                                property.SoType = SoType.Number;
+                                property.SoType = SoType.Text;
                                 break;
                             case FieldType.Number:
                                 property.SoType = SoType.Number;
@@ -984,9 +984,8 @@ namespace K2.LaserficheServiceObject.DataConnectors
             LaserficheProvider lp = new LaserficheProvider(_requiredLaserficheServerValue, _requiredLaserficheRepositoryValue);
             FieldValueCollection fv = new FieldValueCollection();
 
-            for (int i = 0; i < inputProperties.Length - 1; i++)
+            for (int i = 0; i < inputProperties.Length; i++)
             {
-                //inputProperties.Length-1 since we dont want to do anything with the DocumentID
 
                 if (inputProperties[i].Value != null)
                 {
@@ -1028,17 +1027,17 @@ namespace K2.LaserficheServiceObject.DataConnectors
             lp.DocumentUpdateByEntryID(Int32.Parse(parameters.ToObjectArray[0].ToString()), fv);
             lp.Logout();
 
-            foreach (KeyValuePair<string, object> fieldValue in fv)
-            {
-                fieldValue.Key.Replace(" ", "_");
-            }
+            //foreach (KeyValuePair<string, object> fieldValue in fv)
+            //{
+            //    fieldValue.Key.Replace(" ", "_");
+            //}
 
             //matchup values in fieldValueCollection with serviceObject
             for (int i = 0; i < returnProperties.Length; i++)
             {
                 foreach (KeyValuePair<string, object> fieldValue in fv)
                 {
-                    if (serviceObject.Properties[i].Name == fieldValue.Key)
+                    if (serviceObject.Properties[i].Name == fieldValue.Key.Replace(" ", "_"))
                     {
                         if (fieldValue.Value is Array)
                         {
@@ -1124,10 +1123,10 @@ namespace K2.LaserficheServiceObject.DataConnectors
             lp.Logout();
 
 
-            foreach (KeyValuePair<string, object> fieldValue in fv)
-            {
-                fieldValue.Key.Replace(" ", "_");
-            }
+            //foreach (KeyValuePair<string, object> fieldValue in fv)
+            //{
+            //    fieldValue.Key.Replace(" ", "_");
+            //}
 
 
             //matchup values in fieldValueCollection with serviceObject
@@ -1140,7 +1139,7 @@ namespace K2.LaserficheServiceObject.DataConnectors
                         serviceObject.Properties[i].Value = docInfo.Id;
                         break;
                     }
-                    if (serviceObject.Properties[i].Name == fieldValue.Key)
+                    if (serviceObject.Properties[i].Name == fieldValue.Key.Replace(" ", "_"))
                     {
                         if (fieldValue.Value is Array)
                         {
@@ -1214,17 +1213,18 @@ namespace K2.LaserficheServiceObject.DataConnectors
                             serviceObject.MetaData.DisplayName, fv);
 
 
-            foreach (KeyValuePair<string, object> fieldValue in fv)
-            {
-                fieldValue.Key.Replace(" ", "_");
-            }
-
             foreach (DocumentInfo docInfo in docInfoList)
             {
+                fv = docInfo.GetFieldValues();
+
+                //foreach (KeyValuePair<string, object> fieldValue in fv)
+                //{
+                //    fieldValue.Key.Replace(" ", "_");
+                //}
+
                 ////matchup values in fieldValueCollection with serviceObject
                 for (int i = 0; i < returnProperties.Length; i++)
                 {
-                    fv = docInfo.GetFieldValues();
                     foreach (KeyValuePair<string, object> fieldValue in fv)
                     {
                         if (serviceObject.Properties[i].Name == "DocumentID")
@@ -1232,7 +1232,7 @@ namespace K2.LaserficheServiceObject.DataConnectors
                             serviceObject.Properties[i].Value = docInfo.Id;
                             break;
                         }
-                        if (serviceObject.Properties[i].Name == fieldValue.Key)
+                        if (serviceObject.Properties[i].Name == fieldValue.Key.Replace(" ", "_"))
                         {
                             if (fieldValue.Value is Array)
                             {
@@ -1246,8 +1246,27 @@ namespace K2.LaserficheServiceObject.DataConnectors
                                 serviceObject.Properties[i].Value = theValues;
                             }
                             else
-                                serviceObject.Properties[i].Value = (fieldValue.Value == null ? "" : fieldValue.Value);
-                            break;
+                            {
+                                if (LaserficheProvider.IsDate(fieldValue.Value))
+                                {
+                                    switch (serviceObject.Properties[i].SoType)
+                                    {
+                                        case SoType.Date:
+                                            serviceObject.Properties[i].Value = (fieldValue.Value == null ? "" : System.DateTime.Parse(fieldValue.Value.ToString()).ToShortDateString());
+                                            break;
+                                        case SoType.DateTime:
+                                            serviceObject.Properties[i].Value = (fieldValue.Value == null ? "" : fieldValue.Value.ToString());
+                                            break;
+                                        case SoType.Time:
+                                            serviceObject.Properties[i].Value = (fieldValue.Value == null ? "" : System.DateTime.Parse(fieldValue.Value.ToString()).ToString("HH:mm"));
+                                            break;
+                                            //serviceObject.Properties[i].Value = (fieldValue.Value == null ? "" : System.DateTime.Parse(fieldValue.Value.ToString()).ToShortDateString());
+                                    }
+                                }
+                                else
+                                    serviceObject.Properties[i].Value = (fieldValue.Value == null ? "" : fieldValue.Value);
+                                break;
+                            }
                         }
                     }
                 }

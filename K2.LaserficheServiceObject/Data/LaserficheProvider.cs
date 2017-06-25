@@ -53,6 +53,23 @@ namespace K2.LaserficheServiceObject.Data
             }
         }
 
+        public static bool IsDate(Object obj)
+        {
+            if (obj == null)
+                return false;
+            string strDate = obj.ToString();
+            try
+            {
+                DateTime dt = DateTime.Parse(strDate);
+                if (dt != DateTime.MinValue && dt != DateTime.MaxValue)
+                    return true;
+                return false;
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
         public List<DocumentInfo> DocumentSearchByTemplate(string folderName, string templateName, FieldValueCollection fv)
         {
@@ -65,8 +82,44 @@ namespace K2.LaserficheServiceObject.Data
 
                 foreach (KeyValuePair<string, object> kvPair in fv)
                 {
-                    string tempSearch = string.Format(" & {{[{0}]:[{1}]=\"{2}\"}}", templateName, kvPair.Key.ToString(), kvPair.Value.ToString());
-                    searchFields += tempSearch;
+                    if (kvPair.Value.ToString().Contains(','))
+                    {
+                        // multivalue
+                        string values = kvPair.Value.ToString();
+                        string[] items = values.Split(',');
+                        if (items.Length > 0)
+                        {
+                            int x = 0;
+                            foreach (object o in (Array)items)
+                            {
+                                if (x == 0)
+                                {
+                                    string tempSearch = string.Format(" {{[{0}]:[{1}]>=\"{2}\"}}", templateName, kvPair.Key.ToString(), o.ToString());
+                                    searchFields += tempSearch;
+                                }
+                                else
+                                {
+                                    string tempSearch = string.Format(" | {{[{0}]:[{1}]>=\"{2}\"}}", templateName, kvPair.Key.ToString(), o.ToString());
+                                    searchFields += tempSearch;
+                                }
+                                x++;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (IsDate(kvPair.Value.ToString()))
+                        {
+                            //date = do a greater than or equal
+                            string tempSearch = string.Format(" & {{[{0}]:[{1}]>=\"{2}\"}}", templateName, kvPair.Key.ToString(), kvPair.Value.ToString());
+                            searchFields += tempSearch;
+                        }
+                        else
+                        {
+                            string tempSearch = string.Format(" & {{[{0}]:[{1}]=\"{2}\"}}", templateName, kvPair.Key.ToString(), kvPair.Value.ToString());
+                            searchFields += tempSearch;
+                        }
+                    }
                 }
 
                 searchParameters = searchFolder + searchFields;
