@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
+using System.CodeDom.Compiler;
+using System.Xml;
 
 using Laserfiche.RepositoryAccess;
 using Laserfiche.DocumentServices;
@@ -216,7 +219,7 @@ namespace K2.LaserficheServiceObject.Data
         }
 
 
-        public DocumentInfo DocumentAddDocument(string folder, string documentName, string templateName, FieldValueCollection fv)
+        public DocumentInfo DocumentAddDocument(string folder, string documentName, string documentContents, string templateName, FieldValueCollection fv)
         {
             try
             {
@@ -231,15 +234,63 @@ namespace K2.LaserficheServiceObject.Data
                 document.Create(parentFolder, documentName, EntryNameOption.None);
                 document.SetTemplate(templateName);
 
+                XmlDocument xmlDoc = new XmlDocument();
+                xmlDoc.LoadXml(documentContents);
+                Byte[] bytes = Convert.FromBase64String(xmlDoc.SelectSingleNode("//file/content").InnerText);
+                using (System.IO.Stream edocStream = document.WriteEdoc("application/pdf", bytes.ToArray().LongLength))
+                {
+                    edocStream.Write(bytes.ToArray(), 0, bytes.ToArray().Length);
+                }
+                document.Extension = ".pdf";
+
                 document.SetFieldValues(fv);
                 document.Save();
                 return document;
+
+                #region WriteToFileForDebugging
+                //try
+                //{
+                //    // Create a directory in the current working directory.
+                //    Directory.CreateDirectory("tempDir");
+                //    TempFileCollection tfc = new TempFileCollection("tempDir", false);
+
+                //    // Returns the file name relative to the current working directory.
+                //    string fileName = tfc.AddExtension("pdf");
+
+                //    // Create and use the test files.
+                //    //Byte[] bytes = ASCIIEncoding.Default.GetBytes(documentContents);
+                //    File.WriteAllText(fileName, documentContents);
+
+                //    System.IO.MemoryStream ms = new System.IO.MemoryStream(System.IO.File.ReadAllBytes(fileName));
+                //    using (System.IO.Stream edocStream = document.WriteEdoc("application/pdf", ms.ToArray().LongLength))
+                //    {
+                //        edocStream.Write(ms.ToArray(), 0, ms.ToArray().Length);
+                //    }
+                //    document.Extension = ".pdf";
+                //}
+                //catch (Exception ex)
+                //{
+                //    this.Logout();
+                //    throw ex;
+                //}
+                //finally
+                //{
+                //    //tfc.Delete();
+                //}
+                #endregion
+
             }
             catch (Exception ex)
             {
                 this.Logout();
                 throw ex;
             }
+        }
+
+        public static System.IO.MemoryStream GenerateStreamFromString(string value)
+        {
+            //return new System.IO.MemoryStream(Encoding.GetEncoding(1250).GetBytes(value ?? ""));
+            return new System.IO.MemoryStream(Encoding.GetEncoding(1250).GetBytes(value ?? ""));
         }
 
         public List<TemplateInfo> TemplatesGetAll()

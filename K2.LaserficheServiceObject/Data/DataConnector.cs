@@ -153,11 +153,11 @@ namespace K2.LaserficheServiceObject.DataConnectors
                 sf.Add(serviceBroker.Service.ServiceObjects.Create(templateSvcObj));
             }
 
-            //sf = null;
-            //sf = new ServiceFolder("Workflows", new MetaData("Workflows", "Folder for Workflow Service Objects"));
-            //serviceBroker.Service.ServiceFolders.Create(sf);
-            //sf.Add(serviceBroker.Service.ServiceObjects.Create(GenerateWorkflowServiceObjectI()));
-            //sf.Add(serviceBroker.Service.ServiceObjects.Create(GenerateWorkflowServiceObjectII()));
+            sf = null;
+            sf = new ServiceFolder("Workflows", new MetaData("Workflows", "Folder for Workflow Service Objects"));
+            serviceBroker.Service.ServiceFolders.Create(sf);
+            sf.Add(serviceBroker.Service.ServiceObjects.Create(GenerateWorkflowServiceObjectI()));
+            sf.Add(serviceBroker.Service.ServiceObjects.Create(GenerateWorkflowServiceObjectII()));
 
             sf = null;
             sf = new ServiceFolder("Documents", new MetaData("Documents", "Folder for Document Service Objects"));
@@ -412,7 +412,7 @@ namespace K2.LaserficheServiceObject.DataConnectors
             Property property = null;
             Method method = null;
             //load the Type Mappings as defined by the SetTypeMappings() method
-            TypeMappings map = GetTypeMappings();
+            //TypeMappings map = GetTypeMappings();
 
             //Note: ServiceObject Name should not contain space
             documentSvcObject.Name = "Documents";
@@ -665,6 +665,11 @@ namespace K2.LaserficheServiceObject.DataConnectors
                             parm = new MethodParameter("DocumentName", typeof(System.String).ToString(), SoType.Text, null);
                             parm.MetaData.DisplayName = "DocumentName";
                             parm.MetaData.Description = "Document name parameter";
+                            method.MethodParameters.Create(parm);
+
+                            parm = new MethodParameter("DocumentContents", typeof(System.String).ToString(), SoType.Text, null);
+                            parm.MetaData.DisplayName = "DocumentContents";
+                            parm.MetaData.Description = "Document contents parameter";
                             method.MethodParameters.Create(parm);
 
                             //parm = new MethodParameter("TemplateName", typeof(System.String).ToString(), SoType.Text, null);
@@ -1115,9 +1120,11 @@ namespace K2.LaserficheServiceObject.DataConnectors
             lp.Connect();
             //parameters.ToObjectArray[0] will be path
             //parameters.ToObjectArray[1] will be DocumentName
+            //parameters.ToObjectArray[2] will be DocumentContents
             //serviceObject.MetaData.DisplayName will be TemplateName
             DocumentInfo docInfo = lp.DocumentAddDocument(@parameters.ToObjectArray[0].ToString(),
                 parameters.ToObjectArray[1].ToString(),
+                parameters.ToObjectArray[2].ToString(),
                 serviceObject.MetaData.DisplayName, fv);
 
             lp.Logout();
