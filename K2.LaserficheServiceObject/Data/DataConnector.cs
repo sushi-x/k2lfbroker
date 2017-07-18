@@ -13,6 +13,7 @@ using K2.LaserficheServiceObject.Data;
 
 using K2.LaserficheServiceObject.Interfaces;
 
+
 namespace K2.LaserficheServiceObject.DataConnectors
 {
     /// <summary>
@@ -42,7 +43,7 @@ namespace K2.LaserficheServiceObject.DataConnectors
         /// defined by the SetupConfiguration() method and set by the GetConfiguration() method
         /// </summary>
         private string _requiredLaserficheServerValue = string.Empty;
-        private string _requiredLaserficheWorkflowServerValue = string.Empty;
+        //private string _requiredLaserficheWorkflowServerValue = string.Empty;
         private string _requiredLaserficheRepositoryValue = string.Empty;
         private string _optionalConfigurationValue = string.Empty;
 
@@ -74,7 +75,7 @@ namespace K2.LaserficheServiceObject.DataConnectors
         public void SetupConfiguration()
         {
             serviceBroker.Service.ServiceConfiguration.Add("Laserfiche Server", true, "TEXAN-APP26");
-            serviceBroker.Service.ServiceConfiguration.Add("Laserfiche Workflow Server", true, "TEXAN-APP9");
+            //serviceBroker.Service.ServiceConfiguration.Add("Laserfiche Workflow Server", true, "TEXAN-APP9");
             serviceBroker.Service.ServiceConfiguration.Add("Laserfiche Repository", true, "Laserfiche");
         }
         #endregion
@@ -87,7 +88,7 @@ namespace K2.LaserficheServiceObject.DataConnectors
         {
             //the required configuration value will always be there
             _requiredLaserficheServerValue = serviceBroker.Service.ServiceConfiguration["Laserfiche Server"].ToString();
-            _requiredLaserficheWorkflowServerValue = serviceBroker.Service.ServiceConfiguration["Laserfiche Workflow Server"].ToString();
+            //_requiredLaserficheWorkflowServerValue = serviceBroker.Service.ServiceConfiguration["Laserfiche Workflow Server"].ToString();
             _requiredLaserficheRepositoryValue = serviceBroker.Service.ServiceConfiguration["Laserfiche Repository"].ToString();
 
             //optional configuration values may not always exist, so check them first 
@@ -153,11 +154,11 @@ namespace K2.LaserficheServiceObject.DataConnectors
                 sf.Add(serviceBroker.Service.ServiceObjects.Create(templateSvcObj));
             }
 
-            sf = null;
-            sf = new ServiceFolder("Workflows", new MetaData("Workflows", "Folder for Workflow Service Objects"));
-            serviceBroker.Service.ServiceFolders.Create(sf);
-            sf.Add(serviceBroker.Service.ServiceObjects.Create(GenerateWorkflowServiceObjectI()));
-            sf.Add(serviceBroker.Service.ServiceObjects.Create(GenerateWorkflowServiceObjectII()));
+            //sf = null;
+            //sf = new ServiceFolder("Workflows", new MetaData("Workflows", "Folder for Workflow Service Objects"));
+            //serviceBroker.Service.ServiceFolders.Create(sf);
+            //sf.Add(serviceBroker.Service.ServiceObjects.Create(GenerateWorkflowServiceObjectI()));
+            //sf.Add(serviceBroker.Service.ServiceObjects.Create(GenerateWorkflowServiceObjectII()));
 
             sf = null;
             sf = new ServiceFolder("Documents", new MetaData("Documents", "Folder for Document Service Objects"));
@@ -184,7 +185,7 @@ namespace K2.LaserficheServiceObject.DataConnectors
             map.Add("System.Guid", SoType.Guid);
             map.Add("System.Uri", SoType.HyperLink);
             map.Add("System.Xml.XmlDocument", SoType.Xml);
-            map.Add("System.Boolean", SoType.YesNo); 
+            map.Add("System.Boolean", SoType.YesNo);
 
             // Add the type mappings to the service instance so that they can be retrieved easily
             serviceBroker.Service.ServiceConfiguration.Add(TYPEMAPPINGS, map);
@@ -232,10 +233,6 @@ namespace K2.LaserficheServiceObject.DataConnectors
             //OBTAINING CONFIGURATION SETTINGS FOR A SERVICE AT RUNTIME
             //if you need to obtain configuration settings for the service instance and you did not define local members set by the GetConfiguraiotn() method, query the following property:
             //string configValue = serviceBroker.Service.ServiceConfiguration["ConfigItemName"].ToString();
-
-            //in this sample, we are interrogating the method type and calling one of two helper methods, depending on whether this was a "Read" method or a "List" method
-            //refer to the helper method to see how the various method parameters are used.
-            //You will probably need to handle the other Method Types (e.g. Create, Delete etc.) as well.
             if (serviceObject.Name== "Documents")
             {
                 switch (methodType)
@@ -287,119 +284,120 @@ namespace K2.LaserficheServiceObject.DataConnectors
         #region Helper Methods
 
         #region ServiceObject[] GenerateServiceObjects()
+
         /// <summary>
         /// Sample method which generates two Service Objects. You should replace this sample with your own code,
         /// but use the code below as a guide to understand how Service Objects are generated
         /// </summary>
         /// <returns>an Array of ServiceObjects</returns>
-        public List<ServiceObject> GenerateServiceObjects()
-        {
-            //In this sample method, we are adding two Service Objects using an looping-approach to dynamically add Properties and Methods
+        //public List<ServiceObject> GenerateServiceObjects()
+        //{
+        //    //In this sample method, we are adding two Service Objects using an looping-approach to dynamically add Properties and Methods
 
-            //generate a list to hold the service objects
-            List<ServiceObject> sampleSvcObjects = new List<ServiceObject>();
+        //    //generate a list to hold the service objects
+        //    List<ServiceObject> sampleSvcObjects = new List<ServiceObject>();
 
-            //variables to hold ServiceObject, Properties and Methods
-            ServiceObject obj = null;
-            Property property = null;
-            Method method = null;
-            //load the Type Mappings as defined by the SetTypeMappings() method
-            TypeMappings map = GetTypeMappings();
+        //    //variables to hold ServiceObject, Properties and Methods
+        //    ServiceObject obj = null;
+        //    Property property = null;
+        //    Method method = null;
+        //    //load the Type Mappings as defined by the SetTypeMappings() method
+        //    TypeMappings map = GetTypeMappings();
 
-            //Generate two Service Objects. 
-            //this looping-approach is for sample purposes only, to demonstrate adding a variable number of ServiceObjects
-            //pay special attention to the Service Object generation
-            for (int i = 1; i < 3; i++)
-            {
-                //Create a sample Service Object using the i counter to identify the object
-                obj = new ServiceObject();
-                //Note: ServiceObject Name should not contain space
-                obj.Name = this.GetType().Namespace.Replace(" ", "") + ".Object" + i.ToString();
-                string friendlyName = this.GetType().Assembly.GetName().Name + "." + this.GetType().Name;
+        //    //Generate two Service Objects. 
+        //    //this looping-approach is for sample purposes only, to demonstrate adding a variable number of ServiceObjects
+        //    //pay special attention to the Service Object generation
+        //    for (int i = 1; i < 3; i++)
+        //    {
+        //        //Create a sample Service Object using the i counter to identify the object
+        //        obj = new ServiceObject();
+        //        //Note: ServiceObject Name should not contain space
+        //        obj.Name = this.GetType().Namespace.Replace(" ", "") + ".Object" + i.ToString();
+        //        string friendlyName = this.GetType().Assembly.GetName().Name + "." + this.GetType().Name;
 
-                obj.MetaData.DisplayName = friendlyName + " ServiceObject " + i.ToString() + " Display Name";
-                //IMPORTANT: You must activate the Service Object
-                obj.Active = true;
+        //        obj.MetaData.DisplayName = friendlyName + " ServiceObject " + i.ToString() + " Display Name";
+        //        //IMPORTANT: You must activate the Service Object
+        //        obj.Active = true;
 
 
 
-                //Add Properties for the Service object. 
-                //This loop is for sample purposes only to demonstrate adding a variable number of properties
-                //pay attention to the Property setup and Property Type resolution
-                for (int j = 1; j <= i + 2; j++)
-                {
-                    property = new Property();
-                    property.Name = "Property" + j.ToString();
-                    property.MetaData.DisplayName = " Property " + j.ToString() + " Display Name";
-                    //randomly set the Property Type. If counter is even, use a String. If counter is odd, use a Number
-                    //Property Type should be set to a .NET type
-                    property.Type = j % 2 == 0 ? typeof(System.String).ToString() : typeof(System.Int32).ToString();
-                    //based on the Property type, lookup and set SoType using the Property Mappings defined in the SetTypeMappings() method
-                    property.SoType = map[property.Type];
-                    //You can store the backend type here if you needed to, like this
-                    //property.MetaData.ServiceProperties.Add("String", "TEXT"); 
-                    obj.Properties.Add(property);
-                    property = null;
-                }
+        //        //Add Properties for the Service object. 
+        //        //This loop is for sample purposes only to demonstrate adding a variable number of properties
+        //        //pay attention to the Property setup and Property Type resolution
+        //        for (int j = 1; j <= i + 2; j++)
+        //        {
+        //            property = new Property();
+        //            property.Name = "Property" + j.ToString();
+        //            property.MetaData.DisplayName = " Property " + j.ToString() + " Display Name";
+        //            //randomly set the Property Type. If counter is even, use a String. If counter is odd, use a Number
+        //            //Property Type should be set to a .NET type
+        //            property.Type = j % 2 == 0 ? typeof(System.String).ToString() : typeof(System.Int32).ToString();
+        //            //based on the Property type, lookup and set SoType using the Property Mappings defined in the SetTypeMappings() method
+        //            property.SoType = map[property.Type];
+        //            //You can store the backend type here if you needed to, like this
+        //            //property.MetaData.ServiceProperties.Add("String", "TEXT"); 
+        //            obj.Properties.Add(property);
+        //            property = null;
+        //        }
 
-                //Add Methods for the Service Object. 
-                //This code is for example purposes only, to demonstrate adding a variable number of methods
-                //notice the way we define a method, which Properties are available for input, which properties are required,
-                //any parameters for the method and and which properties are returned by the method
-                for (int k = 1; k <= i + 1; k++)
-                {
-                    //Add a Method for the Service Object
-                    method = new Method();
-                    method.Name = "Method" + k.ToString();
-                    //randomly set the Method Type. If counter is even, use List if counter is odd, use Read
-                    method.Type = k % 2 == 0 ? MethodType.List : MethodType.Read;
-                    method.MetaData.DisplayName = " Method " + k.ToString() + " Display Name (" + method.Type.ToString() + ")";
+        //        //Add Methods for the Service Object. 
+        //        //This code is for example purposes only, to demonstrate adding a variable number of methods
+        //        //notice the way we define a method, which Properties are available for input, which properties are required,
+        //        //any parameters for the method and and which properties are returned by the method
+        //        for (int k = 1; k <= i + 1; k++)
+        //        {
+        //            //Add a Method for the Service Object
+        //            method = new Method();
+        //            method.Name = "Method" + k.ToString();
+        //            //randomly set the Method Type. If counter is even, use List if counter is odd, use Read
+        //            method.Type = k % 2 == 0 ? MethodType.List : MethodType.Read;
+        //            method.MetaData.DisplayName = " Method " + k.ToString() + " Display Name (" + method.Type.ToString() + ")";
 
-                    //if the method type is Read, define a Key property using the first property for the ServiceObject
-                    if (method.Type == MethodType.Read)
-                    {
-                        // Set up key property as the first Property of the SmartObject
-                        method.InputProperties.Add(obj.Properties[0]);
+        //            //if the method type is Read, define a Key property using the first property for the ServiceObject
+        //            if (method.Type == MethodType.Read)
+        //            {
+        //                // Set up key property as the first Property of the SmartObject
+        //                method.InputProperties.Add(obj.Properties[0]);
 
-                        // Mark the key property as required.
-                        method.Validation.RequiredProperties.Add(obj.Properties[0]);
+        //                // Mark the key property as required.
+        //                method.Validation.RequiredProperties.Add(obj.Properties[0]);
 
-                        //Include a Method Parameter which is required, but not returned as a property
-                        MethodParameter parm = new MethodParameter("Parameter " + k.ToString(), typeof(System.String).ToString(), SoType.Text, null);
-                        parm.MetaData.DisplayName = "Parameter " + k.ToString() + " (Display Name)";
-                        parm.MetaData.Description = "Sample Parameter";
-                        method.MethodParameters.Create(parm);
-                    }
+        //                //Include a Method Parameter which is required, but not returned as a property
+        //                MethodParameter parm = new MethodParameter("Parameter " + k.ToString(), typeof(System.String).ToString(), SoType.Text, null);
+        //                parm.MetaData.DisplayName = "Parameter " + k.ToString() + " (Display Name)";
+        //                parm.MetaData.Description = "Sample Parameter";
+        //                method.MethodParameters.Create(parm);
+        //            }
 
-                    //if the method type is List, add each of the available Properties as an available input property for the method
-                    if (method.Type == MethodType.List)
-                    {
-                        foreach (Property prop in obj.Properties)
-                        {
-                            method.InputProperties.Add(prop);
-                        }
-                    }
+        //            //if the method type is List, add each of the available Properties as an available input property for the method
+        //            if (method.Type == MethodType.List)
+        //            {
+        //                foreach (Property prop in obj.Properties)
+        //                {
+        //                    method.InputProperties.Add(prop);
+        //                }
+        //            }
 
-                    //Set the method return Properties using all the available Properties of the ServiceObject
-                    foreach (Property prop in obj.Properties)
-                    {
-                        method.ReturnProperties.Add(prop);
-                    }
+        //            //Set the method return Properties using all the available Properties of the ServiceObject
+        //            foreach (Property prop in obj.Properties)
+        //            {
+        //                method.ReturnProperties.Add(prop);
+        //            }
 
-                    //add the method to the Service Object
-                    obj.Methods.Add(method);
-                    method = null;
-                }
+        //            //add the method to the Service Object
+        //            obj.Methods.Add(method);
+        //            method = null;
+        //        }
 
-                //add the generated service object to the List of ServiceObjects
-                sampleSvcObjects.Add(obj);
-                obj = null;
-            }
+        //        //add the generated service object to the List of ServiceObjects
+        //        sampleSvcObjects.Add(obj);
+        //        obj = null;
+        //    }
 
-            //return the collection of defined Service Objects
-            return sampleSvcObjects;
+        //    //return the collection of defined Service Objects
+        //    return sampleSvcObjects;
 
-        }
+        //}
 
         // The class needs to be designated as a ServiceObject and given a Name, DisplayName and Description.
 
@@ -581,8 +579,8 @@ namespace K2.LaserficheServiceObject.DataConnectors
                     //        break;
                     //}
 
-                        //You can store the backend type here if you needed to, like this
-                        //property.MetaData.ServiceProperties.Add("String", "TEXT"); 
+                    //You can store the backend type here if you needed to, like this
+                    //property.MetaData.ServiceProperties.Add("String", "TEXT"); 
                     obj.Properties.Add(property);
                     property = null;
                 }
@@ -671,6 +669,11 @@ namespace K2.LaserficheServiceObject.DataConnectors
                             parm.MetaData.DisplayName = "DocumentContents";
                             parm.MetaData.Description = "Document contents parameter";
                             method.MethodParameters.Create(parm);
+
+                            //parm = new MethodParameter("DocumentFile", typeof(System.String).ToString(), SoType.File, null);
+                            //parm.MetaData.DisplayName = "DocumentFile";
+                            //parm.MetaData.Description = "Document file parameter";
+                            //method.MethodParameters.Create(parm);
 
                             //parm = new MethodParameter("TemplateName", typeof(System.String).ToString(), SoType.Text, null);
                             //parm.MetaData.DisplayName = "TemplateName";
@@ -1122,6 +1125,7 @@ namespace K2.LaserficheServiceObject.DataConnectors
             //parameters.ToObjectArray[1] will be DocumentName
             //parameters.ToObjectArray[2] will be DocumentContents
             //serviceObject.MetaData.DisplayName will be TemplateName
+
             DocumentInfo docInfo = lp.DocumentAddDocument(@parameters.ToObjectArray[0].ToString(),
                 parameters.ToObjectArray[1].ToString(),
                 parameters.ToObjectArray[2].ToString(),
